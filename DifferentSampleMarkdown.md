@@ -1,6 +1,6 @@
 
 #largest heading
-## smaller heading
+The trick to getting markdown formatting is: use ".md" as file extension (?)
 
 ```json
 {
