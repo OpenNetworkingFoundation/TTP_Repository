@@ -12,7 +12,7 @@ A FAQ concerning TTPs can be found at:
 
 <insert link here>
 
-The repository includes directories containing example TTPs (some pedogical and some practical) and associated
+The repository includes directories containing example TTPs (some pedagogical and some practical) and associated
 descriptions.
 
 The repository also includes ideas about useful TTP development tools (and we hope someday also the tools themselves).
