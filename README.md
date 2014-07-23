@@ -6,7 +6,7 @@ Repository for ONF TTP Development
 This GitHub repository is intended to hold material to help SDN developers develop (and learn how to develop)
 Table Type Patterns (TTPs) as specified in the ONF Technical Specification:
 
-https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Table Type Patterns v1.0.pdf 
+https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow%20Table%20Type%20Patterns%20v1.0.pdf 
 
 A FAQ concerning TTPs can be found at:
 
