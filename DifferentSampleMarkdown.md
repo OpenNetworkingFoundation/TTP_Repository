@@ -72,10 +72,15 @@ But even where highly flexible switch platforms (such as virtual switches and NP
 Anyone, even non-ONF members, can define TTPs. TTP authors can have various backgrounds.
 
 __Switch provider__: a TTP can express how a switch family can be easily controlled through OpenFlow
+
   • Example: Broadcom’s OF-DPA
+
 __App or controller provider__: TTPs can describe the switch behavior needed for a particular use case (i.e. a particular device role in a network architecture)
+
   • The [simple example TTPs](https://github.com/OpenNetworkingFoundation/TTP_Repository/tree/master/Simple%20example%20TTPs) might be considered as basic flexible switch models for a MAC bridged or IPv4 network; however, TTPs can be written for switches playing more specialized roles, for example an edge switch supporting a VxLAN overlay network.
+
 __Mixed group__: TTPs can be created by a standards group (e.g., an ONF working group) to describe requirements for a particular solution
+
   • The Forwarding Abstraction Working Group, which developed the OF-TTP specification, has also developed some TTPs for educational purposes (see the later question regarding a TTP repository).  Though these TTPs are primarily for education, they may also have practical value.
 
 New TTPs can be inspired by existing TTPs. For example: An app provider might notice that 3 switch-oriented TTPs all have the ability to support some interesting common functionality as a subset, and might create a TTP based on that common functionality subset.  This “converged” TTP represents functionality which is present in the original different TTPs. With support from the app provider, such a TTP could win support from the 3 original switch TTP creators, as well as from yet other switch providers, thus advancing a platform independent TTP.
@@ -93,9 +98,9 @@ TTP “ownership” may be transferrable.  For example, we might foresee a scena
 ##<a name="Do TTPs affect the OF-Switch protocol?"></a>Do TTPs affect the OF-Switch protocol?
 The answer is “no”, except in very limited ways.  The goal of defining TTPs was to create a framework for describing how to use the existing OF-Switch Protocol and not to extend it.  A TTP can require support for a feature that is defined as optional in the OF-Switch specification, but this does not change the feature itself.  TTPs can include “built-in flow mods”, which are effectively flow entries that are so central to the switch functionality that the use case only makes sense when those entries are present.  When a TTP with built-in flow mods is active, the switch will assume the entry is present in the respective table, even if the entry has not been sent. Built-in flow-mods can also cause some other minor variances from traditional OpenFlow semantics, e.g., they cannot be deleted.  There are a few other changes that could be made to the OF-Switch specification to accommodate TTPs including the following:
 
-• Some new error messages may be defined (e.g., to indicate a flow table entry does not conform to the active TTP)
-• Table Features messages are handled slightly differently (e.g., since an active TTP defines the datapath table pattern, this cannot be reconfigured by the controller)
-• A protocol extension to negotiate and set the parameters for an active TTP may be added
+* Some new error messages may be defined (e.g., to indicate a flow table entry does not conform to the active TTP)
+* Table Features messages are handled slightly differently (e.g., since an active TTP defines the datapath table pattern, this cannot be reconfigured by the controller)
+* A protocol extension to negotiate and set the parameters for an active TTP may be added
 
 For more details, see the “Implementation Considerations” section of the OpenFlow Table Type Patterns document.
 
@@ -153,8 +158,8 @@ There are many use cases for which a single flow table cannot be used or can onl
 
 These use cases fall into two general categories which benefit from multiple flow tables: 
 
-1 Independent Action scenarios. Some scenarios require that separate actions be taken based on different fields.  For example, we may want to forward packets based on the packet’s destination MAC address, and at the same time copy the packet to the controller when it comes from an unknown source MAC address.  Such scenarios are unrealistic to support in a single table using today’s OpenFlow.  Consider that a two table solution could easily support 4000 MAC addresses through the implementation of two tables, each with 4000 entries.  Attempting to support this in a single table might require millions of entries, which require significant switch resources as well as imply huge numbers of control messages.  There are many other similar scenarios where independent actions will require multiple tables.
-2 Multi-stage processing scenarios.  Some scenarios require multiple stages of processing, which are best done in two (or more) tables.  For example, assigning VIDs by ingress port, then checking for “router VID/MAC”, followed by either switching (when no router VID/MAC match) or routing (when destination MAC is recognized as a router MAC).  As with the independent action scenarios above, attempting to implement these schemes in a single flow table is unrealistic.  The number of entries required will multiply relative to an implementation that can leverage multiple tables. 
+1. __Independent Action scenarios__. Some scenarios require that separate actions be taken based on different fields.  For example, we may want to forward packets based on the packet’s destination MAC address, and at the same time copy the packet to the controller when it comes from an unknown source MAC address.  Such scenarios are unrealistic to support in a single table using today’s OpenFlow.  Consider that a two table solution could easily support 4000 MAC addresses through the implementation of two tables, each with 4000 entries.  Attempting to support this in a single table might require millions of entries, which require significant switch resources as well as imply huge numbers of control messages.  There are many other similar scenarios where independent actions will require multiple tables.
+2. __Multi-stage processing scenarios__.  Some scenarios require multiple stages of processing, which are best done in two (or more) tables.  For example, assigning VIDs by ingress port, then checking for “router VID/MAC”, followed by either switching (when no router VID/MAC match) or routing (when destination MAC is recognized as a router MAC).  As with the independent action scenarios above, attempting to implement these schemes in a single flow table is unrealistic.  The number of entries required will multiply relative to an implementation that can leverage multiple tables. 
 
 As SDN adoption advances, the complexity of interesting scenarios will increase.  The ability to use multiple flow tables will enable scalable deployments.  Multiple flow tables may also simplify the decoupling of functions, so that one application may effectively control one flow table, while another application controls another.  
 
