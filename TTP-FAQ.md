@@ -165,8 +165,7 @@ As SDN adoption advances, the complexity of interesting scenarios will increase.
 
 Developers may already be aware that their single table solution architecture has limited sustainability.  The availability of TTPs can provide a path forward.  Simple first generation applications may be built and even deployed using a single flow table.  Next generation applications can be prototyped in small scale environments using one flow table without TTPs, then recast into scalable multi-table solutions leveraging TTPs as the TTP ecosystem matures.
 
-Are there any TTP-related Tools available? 
-
+##<a name="Are there any TTP-related Tools available?">/a<>Are there any TTP-related Tools available? 
 The TTPs written so far by the Forwarding Abstractions Working Group use JSON as the representation format, and many tools are available for JSON editing. In addition, some development has begun on tools for TTP validation (checking that a TTP complies with the spec and is fully self-consistent).  The Forwarding Abstractions Working Group and other TTP backers are pursuing additional tools, such as these:
 
 * TTP-based simulation tools that can verify the intended behavior of a solution pipeline prior to deployment.
@@ -177,7 +176,7 @@ The TTPs written so far by the Forwarding Abstractions Working Group use JSON as
 
 Please contact FAWG regarding TTP-related tools if you have interest in helping develop or define a new tool, or to request a status update on these tools.
 
-##<a name="Are TTP files sent over the wire?"></a>Are TTP files sent over the wire?
+##<a name="Are TTP files sent over the wire?">/a<>Are TTP files sent over the wire?
 No.
 The current TTP framework does not describe any situation where OpenFlow products would pass TTP descriptions "over the wire". However, there will likely be scenarios in the future where such transfer will become interesting. For now, experimenter extensions to the OF­Switch protocol offer one way to implement the capability for providers that have interest in features that could benefit from over-the-wire TTP transfer.
 
