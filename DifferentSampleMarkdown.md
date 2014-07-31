@@ -6,7 +6,7 @@ The trick to getting markdown formatting is: use ".md" as file extension (?)
 
 some other text
 
-[link](#head2)
+[link](#What are TTPs?)
 
 ##<a name="head1"></a>second level heading
 ```json
@@ -31,3 +31,5 @@ some other text
 
 some more text
 
+#<a name="What are TTPs?"></a>What are TTPs?
+TTP text
