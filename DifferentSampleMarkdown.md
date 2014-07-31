@@ -6,7 +6,7 @@ The trick to getting markdown formatting is: use ".md" as file extension (?)
 
 some other text
 
-[link](https://github.com/OpenNetworkingFoundation/TTP_Repository/blob/master/DifferentSampleMarkdown.md#another second level heading)
+[link](https://github.com/OpenNetworkingFoundation/TTP_Repository/blob/master/DifferentSampleMarkdown.md#another%20second%20level%20heading)
 
 ##second level heading
 ```json
