@@ -114,7 +114,7 @@ Nevertheless, TTPs can be written to cater to a particular physical device pipel
 
 If a particular switch vendor’s TTP gains an adoption advantage, one possible outcome is that other vendors may be motivated to support that TTP, which would represent a form of market-driven functional convergence at the device level.  In this way, TTPs can support an evolution toward a long-promised SDN reality.
 
-##<a name=""></a>Do a controller and a switch need to "synchronize" with each other to use TTPs?
+##<a name="Do a controller and a switch need to "synchronize" with each other to use TTPs?"></a>Do a controller and a switch need to "synchronize" with each other to use TTPs?
 When TTP support is integrated into products (controllers and switches), then it is necessary to synchronize the two endpoints to enable TTP-related functionality.  This can be done by configuration or during OF Switch initialization.  At this time, the config-based approach would either use the OF-Config-based NDM Sync mechanism (see the NDM sync spec) or some proprietary (out-of-scope) mechanism of configuration such as CLI commands at both ends. The OF-Switch-based mechanism would use an OF-Switch extension mechanism that is, at the time this is written, under development as an experimenter extension by the Forwarding Abstractions WG.
 
 ##<a name="What's the difference between TTPs and NDMs?"></a>What's the difference between TTPs and NDMs?
@@ -125,7 +125,7 @@ TTPs themselves, and products that support TTPs, are not strictly dependent on t
 
 Additionally, an OF-Switch experimenter extension is being evaluated for providing basic negotiation capabilities in the absence of OF-Config 1.2 support.  This extension will be helpful in the near-term when product support for both OF-Config 1.2 and TTPs is in the early stages.  If the OF community consensus is that the extension is more broadly useful, it can be formalized as an ONF extension.
 
-##<a name=""></a>What versions of OF-Switch do TTPs support?
+##<a name="What versions of OF-Switch do TTPs support?"></a>What versions of OF-Switch do TTPs support?
 The OF-TTP specification was written with OF 1.3 in mind (a long-term stable release).  The current TTP language may provide sufficient support for OF1.0, OF1.3 and OF1.4.  (OF1.1 and OF1.2 were only deployed in limited contexts.)  Future OF 1.x versions are also intended to be supported.  Some effort was invested to allow “automatic” support for future versions of OF-Switch, if versions are created without adding new protocol structures.  Support of new structures may require an upgrade to TTP language.
 
 OF-Switch 1.0 support was included in order to make TTPs usable for describing OF1.0 test cases or benchmarking scenarios to avoid the need to develop a separate TTP-like scheme for OF1.0.
