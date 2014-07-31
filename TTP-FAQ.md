@@ -21,7 +21,7 @@ This list of Frequently Asked Questions (and answers) is intended to be a living
 * [What versions of OF-Switch do TTPs support?](#What versions of OF-Switch do TTPs support?)
 * [Are TTPs just for multiple flow table scenarios?](#Are TTPs just for multiple flow table scenarios?)
 * [Do TTPs mean recoding of controllers and switches?](#Do TTPs mean recoding of controllers and switches?)
-* [Are Multiple Flow Table use cases that important?](#re Multiple Flow Table use cases that important?)
+* [Are Multiple Flow Table use cases that important?](#Are Multiple Flow Table use cases that important?)
 * [Are there any TTP-related Tools available?](#Are there any TTP-related Tools available?)
 * [Are TTP files sent over the wire?](#Are TTP files sent over the wire?)
 * [How do TTPs impact conformance testing?](#How do TTPs impact conformance testing?)
