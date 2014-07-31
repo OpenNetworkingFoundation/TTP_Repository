@@ -1,4 +1,4 @@
-'''json
+```json
 {
   "NDM_metadata": {
     "authority": "org.opennetworking.fawg",
@@ -262,4 +262,4 @@
     {"name": "IPv4::TableSize", "type": "integer"}
   ]
 }
-'''
+```
