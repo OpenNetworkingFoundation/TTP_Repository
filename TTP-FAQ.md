@@ -15,7 +15,7 @@ This list of Frequently Asked Questions (and answers) is intended to be a living
 * [Do TTPs affect the OF-Switch protocol?](#Do TTPs affect the OF-Switch protocol?)
 * [Who is responsible for maintaining the TTP description language?](#Who is responsible for maintaining the TTP description language?)
 * [Are TTPs intended to describe a particular chip pipeline?](#Are TTPs intended to describe a particular chip pipeline?)
-* [Do a controller and a switch need to "synchronize" with each other to use TTPs?](#Do a controller and a switch need to "synchronize" with each other to use TTPs?)
+* [Do a controller and a switch need to synchronize with each other to use TTPs?](#Do a controller and a switch need to synchronize with each other to use TTPs?)
 * [What's the difference between TTPs and NDMs?](#What's the difference between TTPs and NDMs?)
 * [Are TTPs dependent on OF-Config protocol?](#Are TTPs dependent on OF-Config protocol?)
 * [What versions of OF-Switch do TTPs support?](#What versions of OF-Switch do TTPs support?)
@@ -114,7 +114,7 @@ Nevertheless, TTPs can be written to cater to a particular physical device pipel
 
 If a particular switch vendor’s TTP gains an adoption advantage, one possible outcome is that other vendors may be motivated to support that TTP, which would represent a form of market-driven functional convergence at the device level.  In this way, TTPs can support an evolution toward a long-promised SDN reality.
 
-##<a name="Do a controller and a switch need to \"synchronize\" with each other to use TTPs?"></a>Do a controller and a switch need to "synchronize" with each other to use TTPs?
+##<a name="Do a controller and a switch need to synchronize with each other to use TTPs?"></a>Do a controller and a switch need to synchronize with each other to use TTPs?
 When TTP support is integrated into products (controllers and switches), then it is necessary to synchronize the two endpoints to enable TTP-related functionality.  This can be done by configuration or during OF Switch initialization.  At this time, the config-based approach would either use the OF-Config-based NDM Sync mechanism (see the NDM sync spec) or some proprietary (out-of-scope) mechanism of configuration such as CLI commands at both ends. The OF-Switch-based mechanism would use an OF-Switch extension mechanism that is, at the time this is written, under development as an experimenter extension by the Forwarding Abstractions WG.
 
 ##<a name="What's the difference between TTPs and NDMs?"></a>What's the difference between TTPs and NDMs?
