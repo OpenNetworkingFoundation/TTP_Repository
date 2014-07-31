@@ -2,11 +2,11 @@
 #largest heading
 The trick to getting markdown formatting is: use ".md" as file extension (?)
 
-[second level head](##second level heading)
+[second level head](#second level heading)
 
 some other text
 
-[link](##another second level heading)
+[link](#another second level heading)
 
 ##second level heading
 ```json
