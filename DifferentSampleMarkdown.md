@@ -2,13 +2,13 @@
 #largest heading
 The trick to getting markdown formatting is: use ".md" as file extension (?)
 
-[second level head](#second level heading)
+[second level head](#head1)
 
 some other text
 
-[link](https://github.com/OpenNetworkingFoundation/TTP_Repository/blob/master/DifferentSampleMarkdown.md#another%20second%20level%20heading)
+[link](#head2)
 
-##second level heading
+##<a name="head1"></a>second level heading
 ```json
 {
   "array": [
@@ -27,7 +27,7 @@ some other text
   "string": "Hello World"
 }
 ```
-##another second level heading
+##<a name="head2"></a>another second level heading
 
 some more text
 
