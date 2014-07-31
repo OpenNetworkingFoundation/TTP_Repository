@@ -73,15 +73,15 @@ Anyone, even non-ONF members, can define TTPs. TTP authors can have various back
 
 __Switch provider__: a TTP can express how a switch family can be easily controlled through OpenFlow
 
-  • Example: Broadcom’s OF-DPA
+* Example: Broadcom’s OF-DPA
 
 __App or controller provider__: TTPs can describe the switch behavior needed for a particular use case (i.e. a particular device role in a network architecture)
 
-  • The [simple example TTPs](https://github.com/OpenNetworkingFoundation/TTP_Repository/tree/master/Simple%20example%20TTPs) might be considered as basic flexible switch models for a MAC bridged or IPv4 network; however, TTPs can be written for switches playing more specialized roles, for example an edge switch supporting a VxLAN overlay network.
+* The [simple example TTPs](https://github.com/OpenNetworkingFoundation/TTP_Repository/tree/master/Simple%20example%20TTPs) might be considered as basic flexible switch models for a MAC bridged or IPv4 network; however, TTPs can be written for switches playing more specialized roles, for example an edge switch supporting a VxLAN overlay network.
 
 __Mixed group__: TTPs can be created by a standards group (e.g., an ONF working group) to describe requirements for a particular solution
 
-  • The Forwarding Abstraction Working Group, which developed the OF-TTP specification, has also developed some TTPs for educational purposes (see the later question regarding a TTP repository).  Though these TTPs are primarily for education, they may also have practical value.
+* The Forwarding Abstraction Working Group, which developed the OF-TTP specification, has also developed some TTPs for educational purposes (see the later question regarding a TTP repository).  Though these TTPs are primarily for education, they may also have practical value.
 
 New TTPs can be inspired by existing TTPs. For example: An app provider might notice that 3 switch-oriented TTPs all have the ability to support some interesting common functionality as a subset, and might create a TTP based on that common functionality subset.  This “converged” TTP represents functionality which is present in the original different TTPs. With support from the app provider, such a TTP could win support from the 3 original switch TTP creators, as well as from yet other switch providers, thus advancing a platform independent TTP.
 
@@ -133,11 +133,11 @@ OF-Switch 1.0 support was included in order to make TTPs usable for describing O
 ##<a name="Are TTPs just for multiple flow table scenarios?"></a>Are TTPs just for multiple flow table scenarios?
 No.  TTPs also offer benefits that are relevant to single flow table datapath scenarios:
 
-• Test and benchmarking use case profiles: TTPs describe the messages that must be supported
-• Optimization: By clarifying what functions are required, switches can be optimized for a use case. (Note that these required functions may include functions identified as optional in the OF-Switch specification.)
-• Single flow table interoperability: OF-Switch describes a variety of matches and actions, including many that are optional.  Capabilities messages are not expressive enough for handling combinations of required and optional features, but TTPs can represent all needed messages, thereby clarifying what optional features might be required in a given context
-• Single flow tables can also involve other complex behavior, like meters, group entries, etc.  TTPs are able to express such functionality, and clarify interoperability around that functionality
-• Shorthand for expressing interoperability in a market context: TTPs have names that can be used in discussions about product interoperability.  In a way, TTPs can describe a “function level agreement” (FLA)
+* Test and benchmarking use case profiles: TTPs describe the messages that must be supported
+* Optimization: By clarifying what functions are required, switches can be optimized for a use case. (Note that these required functions may include functions identified as optional in the OF-Switch specification.)
+* Single flow table interoperability: OF-Switch describes a variety of matches and actions, including many that are optional.  Capabilities messages are not expressive enough for handling combinations of required and optional features, but TTPs can represent all needed messages, thereby clarifying what optional features might be required in a given context
+* Single flow tables can also involve other complex behavior, like meters, group entries, etc.  TTPs are able to express such functionality, and clarify interoperability around that functionality
+* Shorthand for expressing interoperability in a market context: TTPs have names that can be used in discussions about product interoperability.  In a way, TTPs can describe a “function level agreement” (FLA)
 
 ##<a name="Do TTPs mean recoding of controllers and switches?"></a>Do TTPs mean recoding of controllers and switches?
 Maybe.  There are two or three contexts for engaging with TTPs:
@@ -152,9 +152,9 @@ Making multi-table use cases more practical and interoperable was one of the pri
 
 There are many use cases for which a single flow table cannot be used or can only be used in an inefficient sub-optimal way.
 
-• Cross-product rule explosion happens when many combinations of exact match fields are required. One example is a router forwarding table where multiple copies may be required that differ only in the router MAC address. Multiple tables allow factoring into two tables, one for the router MAC addresses and a second for the route table.
-• Protocols such as MPLS, where nested headers may need to be processed in order to determine packet disposition but OpenFlow only allows matching on the outermost header. The same applies to Q-in-Q VLAN tags. 
-• Not specifically for tables but applicable to group tables, multicast replication and multipath output selection using groups can substantially reduce both the number of flow entries required and the number of interactions with the controller to place flows.
+* Cross-product rule explosion happens when many combinations of exact match fields are required. One example is a router forwarding table where multiple copies may be required that differ only in the router MAC address. Multiple tables allow factoring into two tables, one for the router MAC addresses and a second for the route table.
+* Protocols such as MPLS, where nested headers may need to be processed in order to determine packet disposition but OpenFlow only allows matching on the outermost header. The same applies to Q-in-Q VLAN tags. 
+* Not specifically for tables but applicable to group tables, multicast replication and multipath output selection using groups can substantially reduce both the number of flow entries required and the number of interactions with the controller to place flows.
 
 These use cases fall into two general categories which benefit from multiple flow tables: 
 
@@ -169,11 +169,11 @@ Are there any TTP-related Tools available?
 
 The TTPs written so far by the Forwarding Abstractions Working Group use JSON as the representation format, and many tools are available for JSON editing. In addition, some development has begun on tools for TTP validation (checking that a TTP complies with the spec and is fully self-consistent).  The Forwarding Abstractions Working Group and other TTP backers are pursuing additional tools, such as these:
 
-• TTP-based simulation tools that can verify the intended behavior of a solution pipeline prior to deployment.
-• TTP-based test stimulation generators that (with user guidance) can produce OpenFlow messages and packets for testing a device
-• Ability to generate a TTP based on captured (e.g. Wireshark captures) OpenFlow messages
-• TTP visualizer, that can generate a graphic representation of some aspects of a TTP
-• TTP equivalence checks that check two TTPs and determine if they are equivalent, or if one is a subset of another
+* TTP-based simulation tools that can verify the intended behavior of a solution pipeline prior to deployment.
+* TTP-based test stimulation generators that (with user guidance) can produce OpenFlow messages and packets for testing a device
+* Ability to generate a TTP based on captured (e.g. Wireshark captures) OpenFlow messages
+* TTP visualizer, that can generate a graphic representation of some aspects of a TTP
+* TTP equivalence checks that check two TTPs and determine if they are equivalent, or if one is a subset of another
 
 Please contact FAWG regarding TTP-related tools if you have interest in helping develop or define a new tool, or to request a status update on these tools.
 
