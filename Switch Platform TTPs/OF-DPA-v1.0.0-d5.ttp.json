@@ -5,7 +5,8 @@
     "type": "TTPv1",
     "name": "OF-DPA",
     "version": "1.0.0d4",
-    "doc": ["OF-DPA TTP based on OF-DPA Version 1, February 21, 2014."]
+    "doc": ["Draft OF-DPA TTP based on OF-DPA Version 1, February 21, 2014.",
+            "Note: This TTP has not been vetted by Broadcom."]
   },
   
   "features": [
