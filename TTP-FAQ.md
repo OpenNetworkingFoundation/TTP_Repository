@@ -12,10 +12,14 @@ ben.mackcrane@huawei.com) or ONF administration.
 
 * [What are TTPs?](#what_are_ttps)
 * [How are TTPs helpful?](#how_are_ttps_helpful)
-* [Do TTPs make OpenFlow control more complex?](#do_ttps_make_openflow_more_complex)
-* [Do TTPs force a rigid structure on SDN, limiting programmability?](#Do TTPs force a rigid structure on SDN, limiting programmability?)
-* [Do TTPs allow for optional switch capability?](#Do TTPs allow for optional switch capability?)
-* [If our device supports most of the messages of a TTP, can we claim support for the TTP?](#If our device supports most of the messages of a TTP, can we claim support for the TTP?)
+* [Do TTPs make OpenFlow control more complex?]
+(#do_ttps_make_openflow_more_complex)
+* [Do TTPs force a rigid structure on SDN, limiting programmability?]
+(#Do TTPs force a rigid structure on SDN, limiting programmability?)
+* [Do TTPs allow for optional switch capability?]
+(#Do TTPs allow for optional switch capability?)
+* [If our device supports most of the messages of a TTP, can we claim support
+for the TTP?](#If our device supports most of the messages of a TTP, can we claim support for the TTP?)
 * [Will TTPs be required (What if I don't think they're helpful)?](#Will TTPs be required (What if I don't think they're helpful)?)
 * [Who is responsible for defining TTPs?](#Who is responsible for defining TTPs?)
 * [Can new TTPs be built from existing (reusable) parts?](#Can new TTPs be built from existing (reusable) parts?)
