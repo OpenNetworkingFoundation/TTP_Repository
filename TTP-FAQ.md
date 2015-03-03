@@ -104,8 +104,7 @@ datapath control (i.e., many possible flow table patterns).  A TTP can help
 manage this growing complexity by focusing implementers on a common datapath
 model for a given use case, promoting interoperability.
 
-##<a name="ttp_rigid"></a>Do TTPs force a rigid structure on SDN, limiting
-programmability?
+##<a name="ttp_rigid"></a>Do TTPs force a rigid structure on SDN, limiting programmability?
 No. A TTP encodes decisions that must be made when programming an SDN (e.g., the
 switch datapath structure and controls).  A TTP can encode any datapath
 structure that OpenFlow can control.  So a TTP is a tool, used in the
@@ -151,8 +150,7 @@ TTP parameters are described in more detail in the OF-TTP spec.  Details on
 negotiating TTP functionality using TTP Parameters is described in the NDM
 Synchronization spec.
 
-##<a name="ttp_claim_support"></a>If our device supports most of the messages of
-a TTP, can we claim support for the TTP?
+##<a name="ttp_claim_support"></a>If our device supports most of the messages of a TTP, can we claim support for the TTP?
 To legitimately claim support for a TTP, a switch must implement all
 non-optional functionality described by the TTP.  As mentioned above, a TTP may
 describe some functionality that is optional.  Support for the TTP can be fairly
@@ -162,8 +160,7 @@ in the marketplace, documentation of optional functionality support should refer
 to the OptFunc parameter values that are or are not supported.  (See the OF-TTP
 specification and example TTPs for OptFunc details.)
 
-##<a name="ttp_required"></a>Will TTPs be required (What if I don't think
-they're helpful)?
+##<a name="ttp_required"></a>Will TTPs be required (What if I don't think they're helpful)?
 TTPs are optional; many simple use cases can be supported on a variety of
 devices, including ASIC-based devices, using the "classic" OpenFlow framework
 without TTPs. In addition, complex use cases can be developed on more flexible
@@ -272,15 +269,13 @@ be added
 For more details, see the “Implementation Considerations” section of the
 OpenFlow Table Type Patterns document.
 
-##<a name="ttp_who_maintain_spec"></a>Who is responsible for maintaining the TTP
-description language?
+##<a name="ttp_who_maintain_spec"></a>Who is responsible for maintaining the TTP description language?
 The ONF owns the TTP language.  Responsibility for maintaining of the TTP
 description language belongs to the working group that is chartered with that
 task by the ONF board.  The working group chartered with that responsibility as
 of this writing is the Forwarding Abstractions Working Group.
 
-##<a name="ttp_describe_pipeline"></a>Are TTPs intended to describe a particular
-chip pipeline?
+##<a name="ttp_describe_pipeline"></a>Are TTPs intended to describe a particular chip pipeline?
 
 TTPs were conceived and developed as a way to describe “implementation
 independent” switch behavior (a use case), and thus TTP were intended to
@@ -322,8 +317,7 @@ a switch model was designed to support TTPs as well as future datapath models.
 Because that scheme is agnostic to which switch model is used, the mechanism is
 called the “NDM Negotiation” scheme.
  
-##<a name="ttp_ofconfig"></a>Are TTPs dependent on
-OF-Config protocol?
+##<a name="ttp_ofconfig"></a>Are TTPs dependent on OF-Config protocol?
 TTPs themselves, and products that support TTPs, are not strictly dependent on
 the OF-Config protocol.  However, the rich negotiation protocol described in the
 NDM Sync specification was defined based on the OF-Config 1.2 protocol.  In
@@ -338,8 +332,7 @@ for both OF-Config 1.2 and TTPs is in the early stages.  If the OF community
 consensus is that the extension is more broadly useful, it can be formalized as
 an ONF extension.
 
-##<a name="ttp_ofswitch"></a>What versions of
-OF-Switch do TTPs support?
+##<a name="ttp_ofswitch"></a>What versions of OF-Switch do TTPs support?
 The OF-TTP specification was written with OF 1.3 in mind (a long-term stable
 release).  The current TTP language may provide sufficient support for OF1.0,
 OF1.3 and OF1.4.  (OF1.1 and OF1.2 were only deployed in limited contexts.) 
@@ -352,8 +345,7 @@ OF-Switch 1.0 support was included in order to make TTPs usable for describing
 OF1.0 test cases or benchmarking scenarios to avoid the need to develop a
 separate TTP-like scheme for OF1.0.
 
-##<a name="ttp_multitable"></a>Are TTPs just
-for multiple flow table scenarios?
+##<a name="ttp_multitable"></a>Are TTPs just for multiple flow table scenarios?
 No.  TTPs also offer benefits that are relevant to single flow table datapath
 scenarios:
 
