@@ -1,10 +1,16 @@
 #Table Type Patterns FAQ
-This FAQ addresses questions related to the [OpenFlow Table Type Patterns](https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Table Type Patterns v1.0.pdf) and [OpenFlow Controller-Switch NDM Synchronization](https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Controller-Switch NDM Synchronization v1.0.pdf) specifications.
-This list of Frequently Asked Questions (and answers) is intended to be a living document.  If you have a TTP-related question that is not addressed here, or if the answer you found is unclear, please help us improve this resource by forwarding your questions to the leadership of the Forwarding Abstractions WG (Curt Beckmann: beckmann@brocade.com, Ben Mack-Crane: ben.mackcrane@huawei.com) or ONF administration.
+This FAQ addresses questions related to the [OpenFlow Table Type Patterns]
+(https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Table Type Patterns v1.0.pdf)
+and [OpenFlow Controller-Switch NDM Synchronization](https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Controller-Switch NDM Synchronization v1.0.pdf)
+specifications. This list of Frequently Asked Questions (and answers) is
+intended to be a living document.  If you have a TTP-related question that is
+not addressed here, or if the answer you found is unclear, please help us
+improve this resource by forwarding your questions to the leadership of the
+Forwarding Abstractions WG (Curt Beckmann: beckmann@brocade.com, Ben Mack-Crane:
+ben.mackcrane@huawei.com) or ONF administration.
 
 * [What are TTPs?](#what_are_ttps)
-* [How are TTPs helpful?](
-#how_are_ttps_helpful)
+* [How are TTPs helpful?](#how_are_ttps_helpful)
 * [Do TTPs make OpenFlow control more complex?](#do_ttps_make_openflow_more_complex)
 * [Do TTPs force a rigid structure on SDN, limiting programmability?](#Do TTPs force a rigid structure on SDN, limiting programmability?)
 * [Do TTPs allow for optional switch capability?](#Do TTPs allow for optional switch capability?)
@@ -38,8 +44,7 @@ to abide by) in a given role (for a given “use case”).
 TTPs are described and their syntax and semantics are specified in the ONF
 Technical Specification [OpenFlow Table Type Patterns](https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Table Type Patterns v1.0.pdf).
 
-Some example TTPs are available at the ONF [TTP Repository](https://github.com/
-OpenNetworkingFoundation/TTP_Repository).
+Some example TTPs are available at the ONF [TTP Repository](https://github.com/OpenNetworkingFoundation/TTP_Repository).
 
 ##<a name="how_are_ttps_helpful"></a>How are TTPs helpful?
 As OF-Switch has evolved to support multiple tables and more datapath protocols,
