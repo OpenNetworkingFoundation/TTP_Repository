@@ -2,7 +2,7 @@
 This FAQ addresses questions related to the [OpenFlow Table Type Patterns](https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Table Type Patterns v1.0.pdf) and [OpenFlow Controller-Switch NDM Synchronization](https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Controller-Switch NDM Synchronization v1.0.pdf) specifications.
 This list of Frequently Asked Questions (and answers) is intended to be a living document.  If you have a TTP-related question that is not addressed here, or if the answer you found is unclear, please help us improve this resource by forwarding your questions to the leadership of the Forwarding Abstractions WG (Curt Beckmann: beckmann@brocade.com, Ben Mack-Crane: ben.mackcrane@huawei.com) or ONF administration.
 
-* [What are TTPs?](#What are TTPs?)
+* [What are TTPs?](#what_are_ttps)
 * [How are TTPs helpful?](#How are TTPs helpful?)
 * [Do TTPs make OpenFlow control more complex?](#Do TTPs make OpenFlow control more complex?)
 * [Do TTPs force a rigid structure on SDN, limiting programmability?](#Do TTPs force a rigid structure on SDN, limiting programmability?)
@@ -29,7 +29,7 @@ This list of Frequently Asked Questions (and answers) is intended to be a living
 * [Is there a repository for TTPs?](#Is there a repository for TTPs?)
 * [What controllers will support TTPs?](#What controllers will support TTPs?)
 
-##<a name="What are TTPs?"></a>What are TTPs?
+##<a name="what_are_ttps"></a>What are TTPs?
 TTPs are "Table Type Patterns" — templates that spell out what OF-Switch protocol features and messages a switch needs to support (and a controller needs to abide by) in a given role (for a given “use case”).
 
 TTPs are described and their syntax and semantics are specified in the ONF Technical Specification [OpenFlow Table Type Patterns](https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Table Type Patterns v1.0.pdf).
