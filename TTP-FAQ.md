@@ -1,13 +1,14 @@
 #Table Type Patterns FAQ
-This FAQ addresses questions related to the [OpenFlow Table Type Patterns]
-(https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Table Type Patterns v1.0.pdf)
-and [OpenFlow Controller-Switch NDM Synchronization](https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Controller-Switch NDM Synchronization v1.0.pdf)
+This FAQ addresses questions related to the [OpenFlow Table Type Patterns][1]
+and [OpenFlow Controller-Switch NDM Synchronization][2]
 specifications. This list of Frequently Asked Questions (and answers) is
 intended to be a living document.  If you have a TTP-related question that is
 not addressed here, or if the answer you found is unclear, please help us
 improve this resource by forwarding your questions to the leadership of the
 Forwarding Abstractions WG (Curt Beckmann: beckmann@brocade.com, Ben Mack-Crane:
 ben.mackcrane@huawei.com) or ONF administration.
+[1]: https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Table Type Patterns v1.0.pdf
+[2]: https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Controller-Switch NDM Synchronization v1.0.pdf
 
 * [What are TTPs?](#what_are_ttps)
 * [How are TTPs helpful?](#how_are_ttps_helpful)
