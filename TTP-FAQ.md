@@ -389,7 +389,7 @@ new TTPs would still impact switch-based code.
 
 ##<a name="multitable_important"></a>Are Multiple Flow Table use cases that important?
 Making multi-table use cases more practical and interoperable was one of the
-primary motivators for the development of the TTP framework… But the value of
+primary motivators for the development of the TTP framework. But the value of
 those complex use cases is not always immediately clear.  Shouldn’t we just
 stick with solutions based on a single flow table? Not necessarily.
 
