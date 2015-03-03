@@ -43,9 +43,11 @@ protocol features and messages a switch needs to support (and a controller needs
 to abide by) in a given role (for a given “use case”).
 
 TTPs are described and their syntax and semantics are specified in the ONF
-Technical Specification [OpenFlow Table Type Patterns](https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Table Type Patterns v1.0.pdf).
+Technical Specification [OpenFlow Table Type Patterns]
+(https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Table Type Patterns v1.0.pdf).
 
-Some example TTPs are available at the ONF [TTP Repository](https://github.com/OpenNetworkingFoundation/TTP_Repository).
+Some example TTPs are available at the ONF [TTP Repository]
+(https://github.com/OpenNetworkingFoundation/TTP_Repository).
 
 ##<a name="how_are_ttps_helpful"></a>How are TTPs helpful?
 As OF-Switch has evolved to support multiple tables and more datapath protocols,
