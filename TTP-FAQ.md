@@ -5,7 +5,7 @@ This list of Frequently Asked Questions (and answers) is intended to be a living
 * [What are TTPs?](#what_are_ttps)
 * [How are TTPs helpful?](#how_are_ttps_helpful)
 * [Do TTPs make OpenFlow control more
-* complex?](#do_ttps_make_openflow_more_complex)
+complex?](#do_ttps_make_openflow_more_complex)
 * [Do TTPs force a rigid structure on SDN, limiting programmability?](#Do TTPs force a rigid structure on SDN, limiting programmability?)
 * [Do TTPs allow for optional switch capability?](#Do TTPs allow for optional switch capability?)
 * [If our device supports most of the messages of a TTP, can we claim support for the TTP?](#If our device supports most of the messages of a TTP, can we claim support for the TTP?)
