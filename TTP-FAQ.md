@@ -3,8 +3,9 @@ This FAQ addresses questions related to the [OpenFlow Table Type Patterns](https
 This list of Frequently Asked Questions (and answers) is intended to be a living document.  If you have a TTP-related question that is not addressed here, or if the answer you found is unclear, please help us improve this resource by forwarding your questions to the leadership of the Forwarding Abstractions WG (Curt Beckmann: beckmann@brocade.com, Ben Mack-Crane: ben.mackcrane@huawei.com) or ONF administration.
 
 * [What are TTPs?](#what_are_ttps)
-* [How are TTPs helpful?](#How are TTPs helpful?)
-* [Do TTPs make OpenFlow control more complex?](#Do TTPs make OpenFlow control more complex?)
+* [How are TTPs helpful?](#how_are_ttps_helpful)
+* [Do TTPs make OpenFlow control more
+* complex?](#do_ttps_make_openflow_more_complex)
 * [Do TTPs force a rigid structure on SDN, limiting programmability?](#Do TTPs force a rigid structure on SDN, limiting programmability?)
 * [Do TTPs allow for optional switch capability?](#Do TTPs allow for optional switch capability?)
 * [If our device supports most of the messages of a TTP, can we claim support for the TTP?](#If our device supports most of the messages of a TTP, can we claim support for the TTP?)
@@ -30,14 +31,28 @@ This list of Frequently Asked Questions (and answers) is intended to be a living
 * [What controllers will support TTPs?](#What controllers will support TTPs?)
 
 ##<a name="what_are_ttps"></a>What are TTPs?
-TTPs are "Table Type Patterns" — templates that spell out what OF-Switch protocol features and messages a switch needs to support (and a controller needs to abide by) in a given role (for a given “use case”).
+TTPs are "Table Type Patterns" — templates that spell out what OF-Switch
+protocol features and messages a switch needs to support (and a controller needs
+to abide by) in a given role (for a given “use case”).
 
-TTPs are described and their syntax and semantics are specified in the ONF Technical Specification [OpenFlow Table Type Patterns](https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Table Type Patterns v1.0.pdf).
+TTPs are described and their syntax and semantics are specified in the ONF
+Technical Specification [OpenFlow Table Type Patterns](https://www.opennetworking.org/images/stories/downloads/sdn-resources/onf-specifications/openflow/OpenFlow Table Type Patterns v1.0.pdf).
 
 Some example TTPs are available at the ONF [TTP Repository](https://github.com/OpenNetworkingFoundation/TTP_Repository).
 
-##<a name="How are TTPs helpful?"></a>How are TTPs helpful?
-As OF-Switch has evolved to support multiple tables and more datapath protocols, it has become very feature-rich and flexible. The flexibility can make switch side implementation difficult or inefficient unless additional use-case-related information can be referenced in advance.  In particular, traditional fixed-function (e.g. ASIC-based) switches are often unable to support many OpenFlow features without that information.  More flexible platforms (e.g., CPU or NPU based) can also take advantage of additional information, e.g., in selecting optimal lookup algorithms and allocating table memory.  TTPs provide a standardized way of describing the necessary details that help product developers write applications with confidence.  Each TTP has a unique identifier and selected parameters which switches and controllers can use to ensure agreement on the details specified in the TTP.  
+##<a name="how_are_ttps_helpful"></a>How are TTPs helpful?
+As OF-Switch has evolved to support multiple tables and more datapath protocols,
+it has become very feature-rich and flexible. The flexibility can make switch
+side implementation difficult or inefficient unless additional use-case-related
+information can be referenced in advance.  In particular, traditional
+fixed-function (e.g. ASIC-based) switches are often unable to support many
+OpenFlow features without that information.  More flexible platforms (e.g., CPU
+or NPU based) can also take advantage of additional information, e.g., in
+selecting optimal lookup algorithms and allocating table memory.  TTPs provide a
+standardized way of describing the necessary details that help product
+developers write applications with confidence.  Each TTP has a unique identifier
+and selected parameters which switches and controllers can use to ensure
+agreement on the details specified in the TTP.  
 
 A switch developer can write code to support a TTP use case and be confident that only the TTP-defined messages need to be supported in that context.  This makes the coding problem tractable.  Similarly, a controller writer can develop application (or "service adaptation layer") code for a given TTP use case, with confidence that any switch that supports the TTP will support the relevant messages.  TTPs will be particularly helpful in simplifying the coding of advanced OpenFlow datapath control (where many flow tables or optional functions are needed). Because TTPs describe the expected controller/switch messaging unambiguously, they will also improve interoperability.  
 
