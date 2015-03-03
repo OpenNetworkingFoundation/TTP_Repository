@@ -10,38 +10,37 @@ improve this resource by forwarding your questions to the leadership of the
 Forwarding Abstractions WG (Curt Beckmann: beckmann@brocade.com, Ben Mack-Crane:
 ben.mackcrane@huawei.com) or ONF administration.
 
-* [What are TTPs?](#what_are_ttps)
-* [How are TTPs helpful?](#how_are_ttps_helpful)
-* [Do TTPs make OpenFlow control more complex?]
-(#do_ttps_make_openflow_more_complex)
-* [Do TTPs force a rigid structure on SDN, limiting programmability?]
-(#Do TTPs force a rigid structure on SDN, limiting programmability?)
-* [Do TTPs allow for optional switch capability?]
-(#Do TTPs allow for optional switch capability?)
+* [What are TTPs?](#ttp_what)
+* [How are TTPs helpful?](#ttp_helpful)
+* [Do TTPs make OpenFlow control more complex?](#ttp_make_complex)
+* [Do TTPs force a rigid structure on SDN, limiting programmability?](#ttp_rigid)
+* [Do TTPs allow for optional switch capability?](#ttp_allow_optional)
 * [If our device supports most of the messages of a TTP, can we claim support
-for the TTP?](#If our device supports most of the messages of a TTP, can we claim support for the TTP?)
-* [Will TTPs be required (What if I don't think they're helpful)?](#Will TTPs be required (What if I don't think they're helpful)?)
-* [Who is responsible for defining TTPs?](#Who is responsible for defining TTPs?)
-* [Can new TTPs be built from existing (reusable) parts?](#Can new TTPs be built from existing (reusable) parts?)
-* [Who maintains a TTP?](#Who maintains a TTP?)
-* [Do TTPs affect the OF-Switch protocol?](#Do TTPs affect the OF-Switch protocol?)
-* [Who is responsible for maintaining the TTP description language?](#Who is responsible for maintaining the TTP description language?)
-* [Are TTPs intended to describe a particular chip pipeline?](#Are TTPs intended to describe a particular chip pipeline?)
+for the TTP?](#ttp_claim_support)
+* [Will TTPs be required (What if I don't think they're* helpful)?](#ttp_required)
+* [Who is responsible for defining TTPs?](#ttp_who_make)
+* [Can new TTPs be built from existing (reusable) parts?](#ttp_composable)
+* [Who maintains a TTP?](#who_maintain_ttp)
+* [Do TTPs affect the OF-Switch protocol?](#ttp_affect_openflow)
+* [Who is responsible for maintaining the TTP description language?]
+(#who_maintain_ttp_spec)
+* [Are TTPs intended to describe a particular chip
+pipeline?](#ttp_describe_pipeline)
 * [Do a controller and a switch need to synchronize with each other to use TTPs?](#Do a controller and a switch need to synchronize with each other to use TTPs?)
-* [What's the difference between TTPs and NDMs?](#What's the difference between TTPs and NDMs?)
-* [Are TTPs dependent on OF-Config protocol?](#Are TTPs dependent on OF-Config protocol?)
-* [What versions of OF-Switch do TTPs support?](#What versions of OF-Switch do TTPs support?)
-* [Are TTPs just for multiple flow table scenarios?](#Are TTPs just for multiple flow table scenarios?)
-* [Do TTPs mean recoding of controllers and switches?](#Do TTPs mean recoding of controllers and switches?)
-* [Are Multiple Flow Table use cases that important?](#Are Multiple Flow Table use cases that important?)
-* [Are there any TTP-related Tools available?](#Are there any TTP-related Tools available?)
-* [Are TTP files sent over the wire?](#Are TTP files sent over the wire?)
-* [How do TTPs impact conformance testing?](#How do TTPs impact conformance testing?)
-* [How does one create a TTP?](#How does one create a TTP?)
-* [Is there a repository for TTPs?](#Is there a repository for TTPs?)
-* [What controllers will support TTPs?](#What controllers will support TTPs?)
+* [What's the difference between TTPs and NDMs?](#ttp_ndm)
+* [Are TTPs dependent on OF-Config protocol?](#ttp_ofconfig)
+* [What versions of OF-Switch do TTPs support?](#ttp_openflow_which)
+* [Are TTPs just for multiple flow table scenarios?](#ttp_multitable)
+* [Do TTPs mean recoding of controllers and switches?](#ttp_recording)
+* [Are Multiple Flow Table use cases that important?](#multitable_important)
+* [Are there any TTP-related Tools available?](#ttp_tools)
+* [Are TTP files sent over the wire?](#ttp_how_send)
+* [How do TTPs impact conformance testing?](#ttp_conformance)
+* [How does one create a TTP?](#ttp_create)
+* [Is there a repository for TTPs?](ttp_repo)
+* [What controllers will support TTPs?](ttp_who_support)
 
-##<a name="what_are_ttps"></a>What are TTPs?
+##<a name="ttp_what"></a>What are TTPs?
 TTPs are "Table Type Patterns" — templates that spell out what OF-Switch
 protocol features and messages a switch needs to support (and a controller needs
 to abide by) in a given role (for a given “use case”).
@@ -53,7 +52,7 @@ Technical Specification [OpenFlow Table Type Patterns]
 Some example TTPs are available at the ONF [TTP Repository]
 (https://github.com/OpenNetworkingFoundation/TTP_Repository).
 
-##<a name="how_are_ttps_helpful"></a>How are TTPs helpful?
+##<a name="ttp_helpful"></a>How are TTPs helpful?
 As OF-Switch has evolved to support multiple tables and more datapath protocols,
 it has become very feature-rich and flexible. The flexibility can make switch
 side implementation difficult or inefficient unless additional use-case-related
@@ -67,36 +66,59 @@ developers write applications with confidence.  Each TTP has a unique identifier
 and selected parameters which switches and controllers can use to ensure
 agreement on the details specified in the TTP.  
 
-A switch developer can write code to support a TTP use case and be confident that only the TTP-defined messages need to be supported in that context.  This makes the coding problem tractable.  Similarly, a controller writer can develop application (or "service adaptation layer") code for a given TTP use case, with confidence that any switch that supports the TTP will support the relevant messages.  TTPs will be particularly helpful in simplifying the coding of advanced OpenFlow datapath control (where many flow tables or optional functions are needed). Because TTPs describe the expected controller/switch messaging unambiguously, they will also improve interoperability.  
+A switch developer can write code to support a TTP use case and be confident
+that only the TTP-defined messages need to be supported in that context.  This
+makes the coding problem tractable.  Similarly, a controller writer can develop
+application (or "service adaptation layer") code for a given TTP use case, with
+confidence that any switch that supports the TTP will support the relevant
+messages.  TTPs will be particularly helpful in simplifying the coding of
+advanced OpenFlow datapath control (where many flow tables or optional functions
+are needed). Because TTPs describe the expected controller/switch messaging
+unambiguously, they will also improve interoperability.  
 
-TTPs will also be helpful in testing or benchmarking contexts where participants want advance notice to ensure conformance or optimize performance.  Such participants expect precise descriptions of what messages will be used during testing or benchmarking.  Because TTPs describe a set of messages, matches, actions, etc, in a standard way, they provide a great means of specifying what OpenFlow features a device must support for a particular use case.  For this reason, new use-case-oriented conformance levels are likely to be described using TTPs.
+TTPs will also be helpful in testing or benchmarking contexts where participants
+want advance notice to ensure conformance or optimize performance.  Such
+participants expect precise descriptions of what messages will be used during
+testing or benchmarking.  Because TTPs describe a set of messages, matches,
+actions, etc, in a standard way, they provide a great means of specifying what
+OpenFlow features a device must support for a particular use case.  For this
+reason, new use-case-oriented conformance levels are likely to be described
+using TTPs.
 
-##<a name="Do TTPs make OpenFlow control more complex?"></a>Do TTPs make OpenFlow control more complex?
-No.  TTPs can range from simple to complex according to the complexity of the datapath that is being controlled.  A simple TTP might describe a single flow table and require selected functionality that is specified as optional in the OF-Switch Specification. An example would be a very simple IPv6 router. Another TTP might describe two or three flow tables with only required functions, such as a layer 2 switch with ACLs and VID translation.  Yet another TTP might include six flow tables, support switching, routing, tunneling and multicast, etc.  Describing the required datapath controls in a TTP simply provides a common reference for implementers who need to support the use case.
+##<a name="ttp_make_complex"></a>Do TTPs make OpenFlow control more complex?
+No.  TTPs can range from simple to complex according to the complexity of the
+datapath that is being controlled.  A simple TTP might describe a single flow
+table and require selected functionality that is specified as optional in the
+OF-Switch Specification. An example would be a very simple IPv6 router. Another
+TTP might describe two or three flow tables with only required functions, such
+as a layer 2 switch with ACLs and VID translation.  Yet another TTP might
+include six flow tables, support switching, routing, tunneling and multicast,
+etc.  Describing the required datapath controls in a TTP simply provides a
+common reference for implementers who need to support the use case.
 
 As OpenFlow and SDN mature the usage of advanced OpenFlow features will increase.  Because multiple flow tables can often improve deployment scalability, multi-tables use cases will likely become the norm over time.   For any given use case there may be many different ways to structure the datapath control (i.e., many possible flow table patterns).  A TTP can help manage this growing complexity by focusing implementers on a common datapath model for a given use case, promoting interoperability.
 
-##<a name="Do TTPs force a rigid structure on SDN, limiting programmability?"></a>Do TTPs force a rigid structure on SDN, limiting programmability?
+##<a name="ttp_rigid"></a>Do TTPs force a rigid structure on SDN, limiting programmability?
 No.  A TTP encodes decisions that must be made when programming an SDN (e.g., the switch datapath structure and controls).  A TTP can encode any datapath structure that OpenFlow can control.  So a TTP is a tool, used in the development process, and it does not impose any constraint on the SDN solution beyond those naturally chosen during development.  As with any other software, if a TTP includes an undesirable constraint for a given use case, it can be re-written to remove that constraint (creating a new version of the TTP or a different TTP, as desired).
 
 A TTP (once written) is rigid in some ways, but also allows for some flexibility.  There is a “meta” level of flexibility; controllers and switches may support more than one TTP, just as they may support many use cases, allowing flexibility in the selection of a TTP.  In addition, individual TTPs can support flexibility to some degree.  A TTP can be constructed so that all the functionality described in the TTP must be supported in the switch. In such case, that particular TTP would be pretty rigid; all flow tables and flow entry types, etc, would need to be supported in the switch.  But even that TTP would not force some aspects of switch implementation, such as table size.  A controller can discover what table sizes are supported at connection time.  If large tables are required but only small tables are implemented, the controller can decide not to continue.
 
-##<a name="Do TTPs allow for optional switch capability?"></a>Do TTPs allow for optional switch capability?
+##<a name="ttp_allow_optional"></a>Do TTPs allow for optional switch capability?
 Yes.  Additional flexibility can be included in a TTP by making some flow entry types and other functionality (such as per-entry counters) optional.  When a TTP has optional functionality, a switch supporting the TTP may or may not implement the optional functionality. Sorting out whether optional functionality is available in the switch can be done at control initialization time using TTP parameters.  
 
 Of course the idea is that a TTP should specify optional functionality only when it is not vital to the intended use case, but provides some benefit, such as monitoring or support for something that is only required in some deployments.  In situations where the “optional” functionality is required, the controller can use parameters to learn whether a switch supports it, and can raise a flag when the functionality is not available.  There may also be situations where the switch implements the optional functionality, but the controller does not need it.  TTP parameter negotiation allows the controller to inform the switch that the optional functionality won’t be needed, in case the switch can benefit from that information (e.g. by enabling some resource or performance optimizations).
 
 TTP parameters are described in more detail in the OF-TTP spec.  Details on negotiating TTP functionality using TTP Parameters is described in the NDM Synchronization spec.
 
-##<a name="If our device supports most of the messages of a TTP, can we claim support for the TTP?"></a>If our device supports most of the messages of a TTP, can we claim support for the TTP?
+##<a name="ttp_claim_support"></a>If our device supports most of the messages of a TTP, can we claim support for the TTP?
 To legitimately claim support for a TTP, a switch must implement all non-optional functionality described by the TTP.  As mentioned above, a TTP may describe some functionality that is optional.  Support for the TTP can be fairly claimed even if the optional functions are not supported, though product documentation should make clear what is and is not supported.  (For consistency in the marketplace, documentation of optional functionality support should refer to the OptFunc parameter values that are or are not supported.  (See the OF-TTP specification and example TTPs for OptFunc details.)
 
-##<a name="Will TTPs be required (What if I don't think they're helpful)?"></a>Will TTPs be required (What if I don't think they're helpful)?
+##<a name="ttp_required"></a>Will TTPs be required (What if I don't think they're helpful)?
 TTPs are optional; many simple use cases can be supported on a variety of devices, including ASIC-based devices, using the "classic" OpenFlow framework without TTPs. In addition, complex use cases can be developed on more flexible devices without using TTPs. And so, for use cases that only require a single flow table and no optional functionality, TTPs may be less helpful.
 
 But even where highly flexible switch platforms (such as virtual switches and NPU-based switches) are deployed TTPs are useful for switches to communicate support for a specific pipeline configuration to controllers.  Applications and controllers are often developed for general situations.  That is, they are written without knowledge of what platforms will be available.  So it may be that a controller or application is developed using a TTP, then deployed in an environment with platforms that are capable of supporting that TTP.   
 
-##<a name="Who is responsible for defining TTPs?"></a>Who is responsible for defining TTPs?
+##<a name="ttp_who_make"></a>Who is responsible for defining TTPs?
 Anyone, even non-ONF members, can define TTPs. TTP authors can have various backgrounds.
 
 __Switch provider__: a TTP can express how a switch family can be easily controlled through OpenFlow
@@ -113,7 +135,7 @@ __Mixed group__: TTPs can be created by a standards group (e.g., an ONF working 
 
 New TTPs can be inspired by existing TTPs. For example: An app provider might notice that 3 switch-oriented TTPs all have the ability to support some interesting common functionality as a subset, and might create a TTP based on that common functionality subset.  This “converged” TTP represents functionality which is present in the original different TTPs. With support from the app provider, such a TTP could win support from the 3 original switch TTP creators, as well as from yet other switch providers, thus advancing a platform independent TTP.
 
-##<a name="Can new TTPs be built from existing (reusable) parts?"></a>Can new TTPs be built from existing (reusable) parts?
+##<a name="ttp_composable"></a>Can new TTPs be built from existing (reusable) parts?
 Re-use of TTP elements can only be achieved in a limited way in the current version of the TTP framework. 
 
 It is clear that the ability to create new TTPs quickly from existing parts that capture well-understood datapath functions would be very desirable.  Today one can cut and paste bits from existing TTPs to write a new TTP, but the TTP language still lacks some features to make this more convenient.  Stay tuned (or contribute to enhancing the TTP language to this end). For the current version of the TTP framework the possibility of improving re-use through creative TTP development tools is being explored (see the TTP tools question later in this FAQ).
