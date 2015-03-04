@@ -37,8 +37,8 @@ pipeline?](#ttp_describe_pipeline)
 * [Are TTP files sent over the wire?](#ttp_how_send)
 * [How do TTPs impact conformance testing?](#ttp_conformance)
 * [How does one create a TTP?](#ttp_create)
-* [Is there a repository for TTPs?](ttp_repo)
-* [What controllers will support TTPs?](ttp_who_support)
+* [Is there a repository for TTPs?](#ttp_repo)
+* [What controllers will support TTPs?](#ttp_who_support)
 
 ##<a name="ttp_what"></a>What are TTPs?
 TTPs are "Table Type Patterns" — templates that spell out what OF-Switch
