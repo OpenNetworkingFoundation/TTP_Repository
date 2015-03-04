@@ -20,7 +20,7 @@ for the TTP?](#ttp_claim_support)
 * [Will TTPs be required (What if I don't think they're* helpful)?](#ttp_required)
 * [Who is responsible for defining TTPs?](#ttp_who_make)
 * [Can new TTPs be built from existing (reusable) parts?](#ttp_composable)
-* [Who maintains a TTP?](#ttp_who_maintain)
+* [Who maintains a TTP?](#ttp_who_maintains)
 * [Do TTPs affect the OF-Switch protocol?](#ttp_affect_openflow)
 * [Who is responsible for maintaining the TTP description language?]
 (#ttp_who_maintain_spec)
