@@ -15,4 +15,4 @@ The repository also includes ideas about useful TTP development tools (and we ho
 
 Feel free to browse, learn and contribute.
 
-Send any comments to the ONF (Open Networking Foundation) Forwarding Abstractions Working Group (forwardingabstractions@lists.opennetworking.org).
+Send any comments to the ONF (Open Networking Foundation) Open Datapath Working Group (opendatapath@lists.opennetworking.org).
