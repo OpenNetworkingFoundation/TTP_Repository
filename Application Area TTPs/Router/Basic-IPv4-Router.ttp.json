@@ -1,13 +1,15 @@
 {
   "NDM_metadata": {
     "authority": "org.opennetworking.odwg",
-    "type": "TTPv1",
+    "type": "TTPv1.1*",
     "name": "Basic IPv4 Router",
-    "version": "1.0.0d2",
+    "version": "1.0.0d3",
     "OF_protocol_version": "1.3.3",
     "doc": ["TTP supporting basic unicast IPv4 Router applications.",
-            "Ed.Note: Should local subnets be supported (ARP from Router)?",
-            "Ed.Note: Should we make this TTP more abstract (e.g., remove table numbers)?"]
+            "Local subnets are supported (ARP to/from Router handled by Controller or locally)",
+            "This TTP is in some ways more abstract/flexible than TTPv1 format allows,",
+            "so the type is indicated as TTPv1.1* since there in not yet a specification",
+            "for TTPv1.1 format."]
   },
 
   "security": {
@@ -15,8 +17,17 @@
   },
   
   "table_map": [
-    {"name": "ControlFiltering",  "num": 0, "doc": ["Control frame capture/filtering"]},
-    {"name": "IPv4Forwarding", "num": 1, "doc": ["IPv4 forwarding"]}
+    {"name": "ControlFiltering",  "num": 0},
+    {"name": "IPv4Forwarding", "num": 1}
+  ],
+
+  "table_binding": [
+    {"name": "ControlFiltering::Router-MAC_Next", "tables": ["IPv4Forwarding"],
+     "doc": ["This (new) table binding member allows a table entry type to use",
+             "a variable to reference the next table in a GOTO_TABLE instruction.",
+             "The valid values for these variables is provided in this member.",
+             "This is intended to improve reusability of table entry type definitions."]
+    }
   ],
 
   "identifiers": [
@@ -77,17 +88,19 @@
                  "mask": "0x0fff", "value": "<local_vid>"}
             ]}
           ],
-          "instruction_set": [
-            {"instruction": "APPLY_ACTIONS",
-              "doc": ["Ed.Note: Do we also need a DROP option?"],
-              "actions": [
-                {"exactly_one": [
-                  {"action": "OUTPUT", "port": "CONTROLLER"},
-                  {"action": "OUTPUT", "port": "LOCAL"}
-                ]}
-              ]
-            }
-          ]
+          "instruction_set": { "exactly_one":
+            [
+              {"instruction": "APPLY_ACTIONS",
+                "actions": [
+                  {"exactly_one": [
+                    {"action": "OUTPUT", "port": "CONTROLLER"},
+                    {"action": "OUTPUT", "port": "LOCAL"}
+                  ]}
+                ]
+              },
+              {"instruction": "CLEAR_ACTIONS"}
+            ]
+          }
         },
 
         {
@@ -101,7 +114,7 @@
             {"field": "ETH_TYPE", "value": "0x800"}
           ],
           "instruction_set": [
-            {"instruction": "GOTO_TABLE", "table": "IPv4Forwarding"}
+            {"instruction": "GOTO_TABLE", "table": "Router-MAC_Next"}
           ]
         }
       ],
@@ -132,13 +145,16 @@
           "match_set": [
             {"field": "IPV4_DST", "match_type": "prefix"}
           ],
-          "instruction_set": [
-            {"instruction": "APPLY_ACTIONS",
-              "doc": ["Ed.Note: Do we also need a DROP option?"],
-              "actions": [
-                {"action": "GROUP", "group_id": "<NextHop>"}]
-            }
-          ]
+          "instruction_set": { "exactly_one":
+            [
+              {"instruction": "APPLY_ACTIONS",
+                "actions": [
+                  {"action": "GROUP", "group_id": "<NextHop>"}
+                ]
+              },
+              {"instruction": "CLEAR_ACTIONS"}
+            ]
+          }
         },
 
         {
@@ -154,7 +170,6 @@
           ],
           "instruction_set": [
             {"instruction": "APPLY_ACTIONS",
-              "doc": ["Ed.Note: Do we also need a DROP option?"],
               "actions": [
                 {"exactly_one": [
                   {"action": "OUTPUT", "port": "CONTROLLER"},
