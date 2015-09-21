@@ -3,7 +3,7 @@
     "authority": "org.opennetworking.odwg",
     "type": "TTPv1.1*",
     "name": "Basic IPv4 Router",
-    "version": "1.0.0d3",
+    "version": "1.0.0d4",
     "OF_protocol_version": "1.3.3",
     "doc": ["TTP supporting basic unicast IPv4 Router applications.",
             "Local subnets are supported (ARP to/from Router handled by Controller or locally)",
@@ -22,10 +22,10 @@
   ],
 
   "table_binding": [
-    {"name": "ControlFiltering::Router-MAC_Next", "tables": ["IPv4Forwarding"],
-     "doc": ["This (new) table binding member allows a table entry type to use",
+    {"name": "Router-MAC::Router-MAC_Next", "tables": ["IPv4Forwarding"],
+     "doc": ["This (new) table binding member allows a flow_mod_type to use",
              "a variable to reference the next table in a GOTO_TABLE instruction.",
-             "The valid values for these variables is provided in this member.",
+             "The valid values for these variables are provided in this member.",
              "This is intended to improve reusability of table entry type definitions."]
     }
   ],
@@ -57,8 +57,10 @@
 
   "features": [
     {"feature": "ofp_port_no:OFPP_LOCAL",
-     "doc": ["The LOCAL port must be supported to allow directing control frames to local control functions.",
-             "Ed.Note: The syntax used here for an enum value is not defined in the TTPv1.0 spec."]
+     "doc": ["The LOCAL port must be supported to allow directing control frames",
+             "to local control functions.",
+             "Ed.Note: The syntax used here for an enum value is not defined in",
+             "the TTPv1.0 spec."]
     }
   ],
   
@@ -79,10 +81,6 @@
             {"field": "IN_PORT", "match_type": "all_or_exact"},
             {"field": "ETH_TYPE", "match_type": "all_or_exact"},
             {"field": "ETH_DST",  "match_type": "all_or_exact"},
-            {"zero_or_one": [
-              {"field": "TCP_DST"},
-              {"field": "UDP_DST"}
-            ]},
             { "zero_or_one": [
               {"field": "VLAN_VID", "const_mask": "0xf000", "const_value": "0x1000",
                  "mask": "0x0fff", "value": "<local_vid>"}
