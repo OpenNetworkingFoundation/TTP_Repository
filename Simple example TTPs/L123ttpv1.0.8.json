@@ -1,0 +1,192 @@
+{
+"NDM_metadata": {
+   "authority":"org.opennetworking.odwg",
+   "OF_protocol_version":"1.3.3",
+   "type":"TTPv1",
+   "name":"L123ttp",
+   "version":"1.0.8",
+   "doc": [
+      "doc string"] } ,
+"table_map": [
+   {"name":"LLDP","number":0},
+   {"name":"ACL","number":10},
+   {"name":"RMAC","number":20},
+   {"name":"L2","number":30},
+   {"name":"L3","number":40} ] ,
+"variables": [
+   {"name":"LLDPMac","range":"1..4","doc": ["demo"] } ,
+   {"name":"LLDPMacX","range":"1..4","doc": ["demoX"] } ,
+   {"name":"RouterMac","doc": ["lastvar"] } ] ,
+"security": { "doc": [
+   "No Security Process Yet!"] } ,
+"fmt_table": [
+      {"name":"LLDPtoCtrlr",
+      "priority":1,
+      "doc":[
+         "doc except last",
+         "last doc string"] ,
+      "match_set": [
+         {"field":"OFPXMT_OFB_ETH_DST","match_type":"mask","mask":"0xff","value":"<LLDP>","const_value":"0xFFFFFFFFFFFF"}
+      ],
+      "instruction_set": [
+            {"instruction":"OFPIT_APPLY_ACTIONS","actions": [ {
+               "action":"OFPAT_OUTPUT","port":"CONTROLLER"}] }
+      ] },
+      {"name":"5 tuple ACL for drop",
+      "priority":1,
+	  "match_combos": ["0x1","0x3","0x4","0x5","0x7","0x8","0x9","0xB" ],
+      "doc":[
+         "match MAC and IP addrs",
+         "allowed combinations are",
+		 "0x1 = VID alone",
+		 "0x3 = VID + ETH_DST or ETH_SRC (ETH_DST/SRC not allowed w/o VID)",
+		 "0x4 = IPV4_SRC alone",
+		 "0x5 = VID + IPV4_SRC",
+		 "0x7 = VID + MACs + IPv4_SRC",
+		 "0x8 = IPV4_DST alone",
+		 "0x9 = VID + IPV4_DST",
+		 "0xB = VID + MACs + IPv4_DST",
+		 "not allowed: blank match or IP SRC and DST together"] ,
+      "match_set": [
+         {"field":"OFPXMT_OFB_VLAN_VID","match_type":"all_or_exact","match_flag":"0x1"},
+         {"field":"OFPXMT_OFB_ETH_DST","match_type":"all_or_exact","match_flag":"0x2"},
+         {"field":"OFPXMT_OFB_ETH_SRC","match_type":"all_or_exact","match_flag":"0x2"},
+         {"field":"OFPXMT_OFB_IPV4_SRC","match_type":"prefix","match_flag":"0x4"},
+         {"field":"OFPXMT_OFB_IPV4_DST","match_type":"prefix","match_flag":"0x8"}
+      ],
+      "instruction_set": [
+      ] },
+      {"name":"RMAC_check",
+      "priority":1,
+      "doc":[
+         "if DMAC is a router MAC",
+         "Goto L3 handling"] ,
+      "match_set": [
+         {"field":"OFPXMT_OFB_ETH_DST","match_type":"exact"},
+         {"field":"OFPXMT_OFB_VLAN_VID","match_type":"exact"}
+      ],
+      "instruction_set": [
+            {"instruction":"OFPIT_GOTO_TABLE","table":"L3"}
+      ] },
+      {"name":"L2unicast",
+      "priority":2,
+      "doc":[
+         "doc except last",
+         "last doc string"] ,
+      "match_set": [
+         {"field":"OFPXMT_OFB_ETH_DST","match_type":"exact"},
+         {"field":"OFPXMT_OFB_VLAN_VID","match_type":"exact"}
+      ],
+      "instruction_set": [
+            {"instruction":"OFPIT_APPLY_ACTIONS","actions": [ {
+               "action":"OFPAT_OUTPUT","port":"CONTROLLER"}] }
+      ] },
+      {"name":"L2Flood",
+      "priority":1,
+      "doc":[
+         "if no exact DMAC match",
+         "flood to matching VID"] ,
+      "match_set": [
+         {"field":"OFPXMT_OFB_VLAN_VID","match_type":"exact"}
+      ],
+      "instruction_set": [
+            {"instruction":"OFPIT_APPLY_ACTIONS","actions": [ {
+               "action":"OFPAT_OUTPUT","port":"CONTROLLER"}] }
+      ] },
+      {"name":"Route",
+      "priority":1,
+      "doc":[
+         "Main Routing",
+         "Flowmods"] ,
+      "match_set": [
+         {"field":"OFPXMT_OFB_IPV4_DST","match_type":"prefix"}
+      ],
+      "instruction_set": [
+            {"instruction":"OFPIT_APPLY_ACTIONS","actions": [ {
+               "action":"OFPAT_OUTPUT","port":"CONTROLLER"}] }
+      ] },
+      {"name":"Pass non-LLDP",
+      "priority":0,
+      "doc":[
+         "doc except last",
+         "last doc string"] ,
+      "match_set": [
+      ],
+      "instruction_set": [
+            {"instruction":"OFPIT_GOTO_TABLE","table":"ACL"}
+      ] },
+      {"name":"PassToRMAC",
+      "priority":0,
+      "doc":[
+         "unmatched flows will be",
+         "processed by RMAC table"] ,
+      "match_set": [
+      ],
+      "instruction_set": [
+            {"instruction":"OFPIT_GOTO_TABLE","table":"RMAC"}
+      ] },
+	  {"name":"FallthruToL2",
+      "priority":0,
+      "doc":[
+         "Fall through to L2",
+         "if no RMAC match"] ,
+      "match_set": [
+      ],
+      "instruction_set": [
+            {"instruction":"OFPIT_GOTO_TABLE","table":"L2"}
+      ] }
+] ,
+"flow_tables": [
+   {"name":"LLDP",
+   "doc":[
+      "send LLDPs to ctrlr"] ,
+   "flow_mod_types":  [
+      "LLDPtoCtrlr"
+   ] ,
+   "built_in_flow_mods": [
+      "Pass non-LLDP"
+   ]
+} ,
+   {"name":"ACL",
+   "doc":[
+      "Drop flows that match",
+      "Pass unmatched flows"] ,
+   "flow_mod_types":  [
+      "5 tuple ACL for drop"
+   ] ,
+   "built_in_flow_mods": [
+      "PassToRMAC"
+   ]
+} ,
+   {"name":"RMAC",
+   "doc":[
+      "doc except last",
+      "last doc string"] ,
+   "flow_mod_types":  [
+      "RMAC_check"
+   ] ,
+   "built_in_flow_mods": [
+      "FallthruToL2"
+   ]
+} ,
+   {"name":"L2",
+   "doc":[
+      "doc except last",
+      "last doc string"] ,
+   "flow_mod_types":  [
+      "L2unicast","L2Flood"
+   ] ,
+   "built_in_flow_mods": [
+   ]
+} ,
+   {"name":"L3",
+   "doc":[
+      "IPv4 L3 Unicast Forwarding",
+      "(need to add Mcast)"] ,
+   "flow_mod_types":  [
+      "Route"
+   ] ,
+   "built_in_flow_mods": [
+   ]
+} ]
+}
