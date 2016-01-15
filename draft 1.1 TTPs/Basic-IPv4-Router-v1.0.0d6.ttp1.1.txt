@@ -1,0 +1,284 @@
+{
+  "NDM_metadata": {
+    "authority": "org.opennetworking.odwg",
+    "type": "TTPv1.1",
+    "name": "Basic IPv4 Router",
+    "version": "1.0.0d5",
+    "OF_protocol_version": "1.3.3",
+    "doc": ["TTP supporting basic unicast IPv4 Router applications.",
+            "Local subnets are supported (ARP to/from Router handled by Controller or locally)",
+            "This TTP is in some ways more abstract/flexible than TTPv1 format allows,",
+            "so the type is indicated as TTPv1.1* since there in not yet a specification",
+            "for TTPv1.1 format."]
+  },
+  
+  "table_map": [
+    {"name": "MACControl",  "number": 0},
+    {"name": "IPv4Forwarding", "number": 1},
+	{"name": "IPv4Control", "number": 2}
+  ],
+  
+  "meter_table": {
+    "meter_types": [
+      {
+	    "doc": ["Meter type for limiting traffic to the Controller.",
+	            "1-100Mbps limit, 64-256KB burst size."],
+		"name": "ControllerMeterType",
+        "bands": [{ "type": "DROP",
+	                "rate": "1000..100000",
+                    "burst": "524..2097"
+                  }]
+      }
+    ],
+    "built_in_meters": [
+      { "doc": ["Default meter for packets to the Controller.",
+                "Any traffic sent to CONTROLLER by any flow entry",
+                "will be passed through this Default meter.",
+                "See 'Virtual Meter' in the OpenFlow spec (7.3.4.4)"],
+	    "name": "ControllerMeter",
+	    "meter_id": "0xfffffffe",
+        "type": "ControllerMeterType",
+		"bands": [{"rate": "2000", "burst": "524"}]
+	  }
+    ]
+  },
+
+  "table_binding": [
+    {
+	  "doc": ["This (new) table binding member allows a flow_mod_type to use",
+             "a variable to reference the next table in a GOTO_TABLE instruction.",
+             "The valid values for these variables are provided in this member.",
+             "This is intended to improve reusability of table entry type definitions."],
+      "name": "<Router-MAC::Router-MAC_Next>",
+	  "tables": ["IPv4Forwarding"]
+	},
+    {
+	  "name": "<IPv4-Unicast::Router-IP_Next>",
+	  "tables": ["IPv4Control"]
+	}
+  ],
+
+  "variables": [
+    {"var": "<local_vid>",
+     "range": "1..4094",
+     "doc": ["A VLAN ID valid on the wire at a port."]},
+
+    {"var": "<Router_MAC>",
+     "doc": ["A unicast MAC address used to reach the L3 flow table"]},
+
+    {"var": "<Router_IP>",
+     "doc": ["An IP address used to reach L3 control functions,",
+             "e.g. a unicast loopback address or a Router multicast address."]},
+
+    {"var": "<local_MAC>",
+     "doc": ["The unicast MAC address of a Router port on which a new L2 frame is transmitted."]},
+
+    {"var": "<dest_MAC>",
+     "doc": ["The destination MAC address for a new L2 frame."]},
+
+    {"var": "<subnet_VID>",
+     "doc": ["The VLAN ID of a locally attached L2 subnet on a Router."]},
+
+    {"var": "<port_no>",
+     "doc": ["A valid port number on the logical switch."]}
+  ],
+
+  "features": [
+    {"feature": "ofp_port_no::OFPP_LOCAL",
+     "doc": ["The LOCAL port must be supported to allow directing control frames",
+             "to local control functions.",
+             "Ed.Note: The syntax used here for an enum value is not defined in",
+             "the TTPv1.0 spec."]
+    }
+  ],
+  
+  "FMT_table": [
+    {
+      "name": "MAC-Control-Frame",
+      "doc": ["This match/action entry allows for flow_mods that match on either",
+                  "ETH_TYPE or ETH_DST (or both) and send the packet to the", 
+                  "controller.  This behavior may be per port or for all ports.",
+                  "Note for Conformance: A fully wildcarded entry is not expected to be used.",
+                  "Note: VID match is optional to allow capture of untagged control (e.g., LLDP)."],
+	  "match_combos": ["0x7", "0xf" ],
+	  "match_set": [
+            {"field": "IN_PORT", "match_flag": "0x1", "match_type": "all_or_exact"},
+            {"field": "ETH_TYPE", "match_flag": "0x2", "match_type": "all_or_exact"},
+            {"field": "ETH_DST",  "match_flag": "0x4", "match_type": "all_or_exact"},
+            {"field": "VLAN_VID", "match_flag": "0x8", "const_mask": "0x1000", "const_value": "0x1000",
+                 "mask": "0x0fff", "value": "<local_vid>"}
+      ],
+	  "inst_combos": ["0x1", "0x2" ],
+      "instruction_set":
+        [
+          {"instruction": "APPLY_ACTIONS",
+		   "inst_flag": "0x1",
+		   "action_combos": ["0x1","0x2"],
+            "actions": [
+              {"action": "OUTPUT", "action_flag": "0x1", "port": "CONTROLLER"},
+              {"action": "OUTPUT", "action_flag": "0x2", "port": "LOCAL"}
+            ]
+          },
+          {"instruction": "CLEAR_ACTIONS", "inst_flag": "0x2"}
+        ]
+    },
+
+    {
+      "name": "Router-MAC",
+      "doc": "Router MAC address, so send to IP forwarding table.",
+      "match_set": [
+            {"field": "IN_PORT", "match_type": "all_or_exact"},
+            {"field": "VLAN_VID", "const_mask": "0x1000", "const_value": "0x1000",
+               "mask": "0x0fff", "value": "<local_vid>"},
+            {"field": "ETH_DST", "value": "<Router_MAC>"},
+            {"field": "ETH_TYPE", "value": "0x800"}
+          ],
+          "instruction_set": [
+            {"instruction": "GOTO_TABLE", "table": "<Router-MAC_Next>"}
+          ]
+    },
+    {
+	  "name": "MACControl-MISS",
+	  "doc": "Drop frames not destined for the Controller or Router.",
+	  "priority": 0,
+	  "match_set": [],
+	  "instruction_set": [
+		{"instruction": "CLEAR_ACTIONS"}
+	  ]
+    },
+	{
+	  "name": "IPv4-Unicast",
+	  "doc": ["LPM forwarding entry. Valid only if the priority value",
+			  "matches the length of the prefix mask."],
+	  "match_set": [
+		{"field": "ETH_TYPE", "value": "0x800"},
+		{"field": "IPV4_DST", "match_type": "prefix"}
+	  ],
+	  "inst_combos": [ "0x1", "0x2" ],
+	  "instruction_set": [
+		{"instruction": "APPLY_ACTIONS",
+		 "inst_flag": "0x1",
+		 "actions": [
+			{"action": "GROUP", "group_id": "<NextHop>"}
+		 ]
+		},
+		{"instruction": "CLEAR_ACTIONS",
+		 "inst_flag": "0x2" }
+	  ]
+    },
+    {
+	  "name": "Router-IP",
+	  "doc": ["Exact match forwarding entry for addresses to the Router."],
+	  "priority":32,
+	  "match_set": [
+		{"field": "ETH_TYPE", "value": "0x800"},
+		{"field": "IPV4_DST", "match_type": "exact"}
+	  ],
+	  "instruction_set": [
+		  {"instruction": "GOTO_TABLE", "table": "<Router-IP_Next>"}
+	  ]
+    },
+    {
+	  "name": "IPv4-Control",
+	  "doc": ["Capture L3 control packets and forward them to the Controller,",
+			  "local CPU, or to another location (via a next hop).",
+			  "Drop packets that do not match a forwarding entry."],
+
+	  "match_combos": [ "0x3", "0x5", "0x15", "0x9", "0x29" ],
+	  "match_set": [
+		{"field": "ETH_TYPE", "match_flag": "0x1", "value": "0x800"},
+		{"field": "IP_PROTO", "match_flag": "0x2"},
+		{"field": "IP_PROTO", "match_flag": "0x4", "value": "0x6"},
+		{"field": "TCP_DST", "match_flag": "0x10"},
+		{"field": "TCP_SRC", "match_flag": "0x10"},
+		{"field": "IP_PROTO", "match_flag": "0x8", "value": "0x11"},
+		{"field": "UDP_DST", "match_flag": "0x20"},
+		{"field": "UDP_SRC", "match_flag": "0x20"} ],
+	  "instruction_set": [
+		{"instruction": "APPLY_ACTIONS",
+		  "action_combos": ["0x1", "0x2", "0x4"],
+		  "actions": [
+			{"action": "OUTPUT", "action_flag": "0x1", "port": "CONTROLLER"},
+			{"action": "OUTPUT", "action_flag": "0x2", "port": "LOCAL"},				  
+			{"action": "GROUP", "action_flag": "0x4", "group_id": "<NextHop>"}
+			]
+		}
+	  ]
+    },
+    {
+	  "name": "IPv4Control-MISS",
+	  "doc": "Drop frames with no forwarding entry.",
+	  "priority": 0,
+	  "match_set": [],
+	  "instruction_set": [
+		{"instruction": "CLEAR_ACTIONS"}
+	  ]
+    }
+  ],
+  
+  "flow_tables": [
+    {
+      "name": "MACControl",
+      "doc": ["This table selects frames directed to the routing function and supports",
+              "control frame capture/filtering based on destination MAC address and/or",
+              "EtherType and possibly VID."],
+      "flow_mod_types": [
+	     "MAC-Control-Frame",
+		 "Router-MAC"
+      ],
+      "built_in_flow_mods": [
+	     "MACControl-MISS"
+      ]
+    },
+
+    {
+      "name": "IPv4Forwarding",
+      "doc": ["IPv4 unicast forwarding table.  For LPM (prefix match type) the flow_mod",
+              "priority must be the length of the prefix mask.  Packets addressed to",
+			  "this router are passed to the next table for filtering/forwarding."],
+      "flow_mod_types": [
+	     "IPv4-Unicast",
+		 "Router-IP"
+      ]
+    },
+
+    {
+      "name": "IPv4Control",
+      "doc": ["IPv4 control forwarding table.  Control packets to this Router",
+              "may be filtered or forwarded to a control entity that is local,",
+			  "in the controller, or at another location."],
+      "flow_mod_types": [
+	     "IPv4-Control"
+      ],
+      "built_in_flow_mods": [
+          "IPv4Control-MISS"
+      ]
+    }
+  ],
+
+  "group_entry_types": [
+    {
+      "name": "NextHop",
+      "doc": ["Decrement IP TTL and add L2 header for next hop.",
+              "Entry per next hop IP address."],
+      "group_type": "INDIRECT",
+      "bucket_types": [
+        {"name": "KnownMAC",
+         "action_set": [
+           {"action": "DEC_NW_TTL"},
+           {"action": "SET_FIELD", "type": "ETH_SRC", "value": "<local_MAC>"},
+           {"action": "SET_FIELD", "type": "ETH_DST", "value": "<dest_MAC>"},
+           {"action": "SET_FIELD", "type": "VLAN_VID", "value": "<subnet_VID>"},
+           {"action": "OUTPUT", "port": "<port_no>"}]
+        }
+      ]
+    }
+  ],
+
+  "parameters": [
+    {"name": "MACControl::TableSize", "type": "integer"},
+    {"name": "IPv4Forwarding::TableSize", "type": "integer"},
+    {"name": "IPv4Control::TableSize", "type": "integer"}
+  ]
+}
+
