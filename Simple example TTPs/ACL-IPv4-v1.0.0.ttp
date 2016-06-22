@@ -104,7 +104,7 @@
                "doc": ["This meter may be used to limit the rate of",
                        "PACKET_IN frames sent to the controller"]}
             },
-            {"intruction": "APPLY_ACTIONS",
+            {"instruction": "APPLY_ACTIONS",
               "actions": [
                 {"action": "OUTPUT", "port": "CONTROLLER"}]
             }
@@ -157,7 +157,7 @@
             {"field": "ARP_TPA", "value": "<Router_IP>"}
           ],
           "instruction_set": [
-            {"intruction": "APPLY_ACTIONS",
+            {"instruction": "APPLY_ACTIONS",
               "actions": [
                 {"action": "OUTPUT", "port": "CONTROLLER"}]
             }
@@ -179,7 +179,7 @@
             {"field": "IPV4_DST", "match_type": "prefix"}
           ],
           "instruction_set": [
-            {"intruction": "APPLY_ACTIONS",
+            {"instruction": "APPLY_ACTIONS",
               "actions": [
                 {"action": "GROUP", "group_id": "<NextHop>"}]
             }
