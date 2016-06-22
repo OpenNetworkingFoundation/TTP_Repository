@@ -1,0 +1,1036 @@
+{
+  "NDM_metadata": {
+    "authority": "org.opennetworking.fawg",
+    "OF_protocol_version": "1.3.1",
+    "type": "TTPv1",
+    "name": "OF-DPA",
+    "version": "1.0.0d4",
+    "doc": ["Draft OF-DPA TTP based on OF-DPA Version 1, February 21, 2014.",
+            "Note: This TTP has not been vetted by Broadcom."]
+  },
+  
+  "features": [
+    {"feature": "ALLOW_IN_PORT",
+     "doc": ["Vendor extension mmentioned in the OF-DPA specification (section 3.7.2),",
+             "not controllable or referenced via OpenFlow-Switch."]},
+    {"feature": "MTU_check",
+     "doc": "Vendor extension mentioned in the OF-DPA specification (section 3.7.3)."}
+  ],
+  
+  "table_map": {
+    "IngressPort": 0,
+    "VLAN": 1,
+    "TerminationMAC": 2,
+    "Bridging": 3,
+    "UnicastRouting": 4,
+    "MulticastRouting": 5,
+    "PolicyACL": 6
+  },
+
+  "identifiers": [
+    {"var": "<vid>",
+     "range": "1..4094",
+     "doc": "A VLAN ID."},
+    {"var": "<port_vid>",
+     "range": "1..4094",
+     "doc": "A VLAN ID to be assigned to untagged or priority tagged frames received on a port."},
+    {"var": "<lport_no>",
+     "doc": "A valid overlay tunnel logical port number on the logical switch."},
+    {"var": "<pport_no>",
+     "doc": "A valid physical port number on the logical switch."},
+    {"var": "<local_MAC>",
+     "doc": "The unicast MAC address of a Router port on which a new L2 frame is transmitted."},
+    {"var": "<dest_MAC>",
+     "doc": "The destination MAC address for a new L2 frame."},
+    {"var": "<subnet_VID>",
+     "doc": "The VLAN ID of a locally attached L2 subnet on a Router."}
+  ],
+  
+  
+  "flow_tables": [
+    {
+      "name": "IngressPort",
+      "doc": ["The Ingress Port Flow Table decides, based on ingress port type,",
+              "whether to forward the packet using the main pipeline or in an",
+              "isolated (e.g., tenant) forwarding domain.  In this version of OF-DPA,",
+              "the high order 16 bits are zero for physical ports and one for",
+              "overlay tunnel logical ports"],
+      "flow_mod_types": [
+        {
+          "name": "Overlay-Tunnel",
+          "priority": 1,
+          "doc": "Matches packets from data center overlay tunnel logical ports.",
+          "match_set": [
+            {"field": "IN_PORT", "match_type": "mask", "const_mask": "0xffff0000", "const_value": "0x00010000",
+                "mask": "0x0000ffff", "value": "<lport_no>",
+                "doc": ["Since OF1.3.1 does not allow masking IN_PORT this match condition",
+                        "will be changed to test TUNNEL_ID instead in a revision of OF-DPA."]}
+          ],
+          "instruction_set": [
+            {"instruction": "GOTO_TABLE", "table": "Bridging"}
+          ]
+        }       
+      ],
+      "built_in_flow_mods": [
+        {
+          "name": "Normal-Ethernet",
+          "priority": 1,
+          "doc": "Matches packets from local physical ports.",
+          "match_set": [
+            {"field": "IN_PORT", "match_type": "mask", "mask": "0xffff0000", "value": "0x00000000",
+                "doc": ["Since OF1.3.1 does not allow masking IN_PORT this match condition",
+                        "will be changed to test TUNNEL_ID instead in a revision of OF-DPA."]}
+          ],
+          "instruction_set": [
+            {"instruction": "GOTO_TABLE", "table": "VLAN"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "VLAN",
+      "doc": ["The VLAN Flow Table is used for IEEE 801.Q compliant VLAN assignment",
+              "and filtering"],
+      "flow_mod_types": [
+        {
+          "name": "Allow-VID",
+          "priority": 1,
+          "doc": "Allow a VID to ingress at a port.",
+          "match_set": [
+            {"field": "IN_PORT", "value": "<pport_no>"},
+            {"field": "VLAN_VID", "const_mask": "0x1000", "const_value": "0x1000",
+                "mask": "0x0fff", "value": "<vid>"}
+          ],
+          "instruction_set": [
+            {"instruction": "GOTO_TABLE", "table": "TerminationMAC"}
+          ]
+        },
+        {
+          "name": "Port-VID",
+          "priority": 1,
+          "doc": ["Assign a port VID to untagged or priority tagged frames at a port.",
+                  "The <port_vid> cannot be used in an Allow-VID entry for the same port."],
+          "match_set": [
+            {"field": "IN_PORT", "value": "<pport_no>"},
+            {"field": "VLAN_VID", "mask": "0x0fff", "value": "0x0000"}
+          ],
+          "instruction_set": [
+            {"instruction": "APPLY_ACTIONS",
+              "actions": [
+                {"action": "SET_FIELD", "field": "VLAN_VID", "value": "<port_vid>"}]},
+            {"instruction": "GOTO_TABLE", "table": "TerminationMAC"}
+          ]
+        }
+        
+      ]
+    },
+    {
+      "name": "TerminationMAC",
+      "doc": ["The Termination MAC Flow Table determines whether to do bridging or routing on a packet.",
+              "Note: The OF-DPA spec says 'Strict rule priority must be assigned by the controller so that",
+              "every flow entry has a unique priority.'.  This is not strictly necessary.  Different",
+              "priorities are required only when table entries have overlapping match conditions.",
+              "Note: In OF-DPA 'field maskable' corresponds to the 'all_or_exact' match type."],
+      "flow_mod_types": [
+        {
+          "name": "Unicast-MAC",
+          "priority": 1,
+          "doc": "Router MAC address on a specific port/VID.",
+          "match_set": [
+            {"field": "IN_PORT", "match_type": "all_or_exact", "value": "<pport_no>"},
+            {"field": "VLAN_VID", "match_type": "mask", "mask": "0x0fff", "value": "<vid>"},
+            {"field": "ETH_DST", "value": "<local_MAC>"},
+            {"exactly_one": [
+              {"field": "ETH_TYPE", "value": "0x0800"},
+              {"field": "ETH_TYPE", "value": "0x86dd"}]}
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "GOTO_TABLE", "table": "UnicastRouting"}
+            ]}
+          ]
+        },
+        {
+          "name": "IPv4-Multicast",
+          "priority": 2,
+          "doc": "Wildcard rule that recognizes all IPv4 multicast MAC addresses specified in RFC 1112.",
+          "match_set": [
+            {"field": "ETH_DST", "mask": "0xffffff80000000", "value": "01-00-5e-00-00-00"},
+            {"field": "ETH_TYPE", "value": "0x0800"}
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "GOTO_TABLE", "table": "MulticastRouting"}
+            ]}
+          ]
+        },
+        {
+          "name": "IPv6-Multicast",
+          "priority": 2,
+          "doc": "Wildcard rule that recognizes all IPv6 MAC addresses specified in RFC 2464.",
+          "match_set": [
+            {"field": "ETH_DST", "mask": "0xffff0000000000", "value": "33-33-00-00-00-00"},
+            {"field": "ETH_TYPE", "value": "0x86dd"}
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "GOTO_TABLE", "table": "MulticastRouting"}
+            ]}
+          ]
+        }        
+      ],
+      "built_in_flow_mods": [
+        {
+          "name": "MISS",
+          "priority": 0,
+          "doc": "Default goes to Bridging.",
+          "match_set": [],
+          "instruction_set": [
+            {"instruction": "GOTO_TABLE", "table": "Bridging"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bridging",
+      "doc": ["The Bridging Flow Table supports Ethernet packet switching for potentially",
+              "large numbers of flow entries using the hardware L2 tables.",
+              "The default on a miss is to go to the Policy ACL Flow Table."],
+      "flow_mod_types": [
+        {
+          "name": "Unicast-VLAN",
+          "priority": 2,
+          "doc": ["Matches switched unicast Ethernet frames by VLAN ID and MAC_DST.",
+                  "MAC_DST must be unicast and cannot be masked.", 
+                  "VLAN ID must be nonzero. Tunnel ID must be zero."],
+          "match_set": [
+            {"field": "VLAN_VID", "match_type": "exact"},
+            {"field": "ETH_DST", "match_type": "exact", 
+               "const_mask":"0x010000000000", "const_value":"0x000000000000"}
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "APPLY_ACTIONS",
+                "actions": [
+                  {"action": "OUTPUT", "port": "CONTROLLER"}]}
+            ]},
+            {"zero_or_one": [
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [{"action": "GROUP", "group_id": "<L2Interface>"}]
+              }
+            ]},
+            {"zero_or_one": [
+              {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+            ]}
+          ]
+        },
+        {
+          "name": "Multicast-VLAN",
+          "priority": 2,
+          "doc": ["Matches switched multicast Ethernet frames by VLAN ID and MAC_DST.",
+                  "MAC_DST must be multicast and cannot be masked.", 
+                  "VLAN ID must be nonzero. Tunnel ID must be zero."],
+          "match_set": [
+            {"field": "VLAN_VID", "match_type": "exact"},
+            {"field": "ETH_DST", "match_type": "exact", 
+               "const_mask":"0x010000000000", "const_value":"0x010000000000"}
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "APPLY_ACTIONS",
+                "actions": [
+                  {"action": "OUTPUT", "port": "CONTROLLER"}]}
+            ]},
+            {"zero_or_one": [
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [{"action": "GROUP", "group_id": "<L2Multicast>"}]
+              }
+            ]},
+            {"zero_or_one": [
+              {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+            ]}
+          ]
+        },
+        {
+          "name": "DLF-VLAN",
+          "priority": 1,
+          "doc": ["Matches switched multicast Ethernet frames by VLAN ID only.",
+                  "If MAC_DST is present it must be masked.", 
+                  "VLAN ID must be nonzero. Tunnel ID must be zero.",
+                  "Note: OF-DPAv1 includes ETH_DST as an optional match field, but this is not needed."],
+          "match_set": [
+            {"field": "VLAN_VID", "match_type": "exact"}
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "APPLY_ACTIONS",
+                "actions": [
+                  {"action": "OUTPUT", "port": "CONTROLLER"}]}
+            ]},
+            {"zero_or_one": [
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [{"action": "GROUP", "group_id": "<L2Flood>"}]
+              }
+            ]},
+            {"zero_or_one": [
+              {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+            ]}
+          ]
+        },
+        {
+          "name": "Unicast-Tenant",
+          "priority": 2,
+          "doc": ["Matches switched unicast Ethernet frames by Tunnel ID and MAC_DST.",
+                  "MAC_DST must be unicast and cannot be masked.", 
+                  "Tunnel ID must be nonzero.",
+                  "Note: OF-DPAv1 indicates VLAN ID must be zero.  This is not required",
+                  "the VLAN ID may be present or not and is ignored."],
+          "match_set": [
+            {"field": "TUNNEL_ID", "match_type": "exact"},
+            {"field": "ETH_DST", "match_type": "exact", 
+               "const_mask":"0x010000000000", "const_value":"0x000000000000"}
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "APPLY_ACTIONS",
+                "actions": [
+                  {"action": "OUTPUT", "port": "CONTROLLER"}]}
+            ]},
+            {"zero_or_one": [
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [{"action": "OUTPUT", "port": "<lport_id>"}]
+              }
+            ]},
+            {"zero_or_one": [
+              {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+            ]}
+          ]
+        },
+        {
+          "name": "Multicast-Tenant",
+          "priority": 2,
+          "doc": ["Matches switched multicast Ethernet frames by VLAN ID and MAC_DST.",
+                  "MAC_DST must be multicast and cannot be masked.", 
+                  "Tunnel ID must be nonzero."],
+          "match_set": [
+            {"field": "TUNNEL_ID", "match_type": "exact"},
+            {"field": "ETH_DST", "match_type": "exact", 
+               "const_mask":"0x010000000000", "const_value":"0x010000000000"}
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "APPLY_ACTIONS",
+                "actions": [
+                  {"action": "OUTPUT", "port": "CONTROLLER"}]}
+            ]},
+            {"zero_or_one": [
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [{"action": "GROUP", "group_id": "<L2Overlay>"}]
+              }
+            ]},
+            {"zero_or_one": [
+              {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+            ]}
+          ]
+        },
+        {
+          "name": "DLF-Tenant",
+          "priority": 1,
+          "doc": ["Matches switched multicast Ethernet frames by VLAN ID only.",
+                  "If MAC_DST is present it must be masked.", 
+                  "Tunnel ID must be nonzero. VLAN ID must be zero."],
+          "match_set": [
+            {"field": "TUNNEL_ID", "match_type": "exact"},
+            {"field": "ETH_DST", "match_type": "all_or_exact"}
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "APPLY_ACTIONS",
+                "actions": [
+                  {"action": "OUTPUT", "port": "CONTROLLER"}]}
+            ]},
+            {"zero_or_one": [
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [{"action": "GROUP", "group_id": "<L2Overlay>"}]
+              }
+            ]},
+            {"zero_or_one": [
+              {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+            ]}
+          ]
+        }
+      ],
+      "built_in_flow_mods": [
+        {
+          "name": "MISS",
+          "priority": 0,
+          "doc": "Default goes to PolicyACL.",
+          "match_set": [],
+          "instruction_set": [
+            {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+          ]
+        }        
+      ]
+    },
+    {
+      "name": "UnicastRouting",
+      "doc": ["The Unicast Routing Flow Table supports routing for potentially large numbers",
+              "of IPv4 and IPv6 flow entries"],
+      "flow_mod_types": [
+        {
+          "name": "IPv4-Unicast",
+          "doc": "IPv4 uniicast flow entry",
+          "match_set": [
+            {"field": "IPV4_DST", "match_type": "prefix", "doc": "Must be an IPv4 unicast address."}
+          ],
+          "instruction_set": [
+            {"exactly_one": [
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [
+                  {"action": "GROUP", "group_id": "<L3Unicast>"}]},
+              {"instruction": "CLEAR_ACTIONS"}
+            ]},
+            {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+          ]
+        },
+        {
+          "name": "IPv6-Unicast",
+          "doc": "IPv6 uniicast flow entry",
+          "match_set": [
+            {"field": "IPV6_DST", "match_type": "prefix", "doc": "Must be an IPv6 unicast address."}
+          ],
+          "instruction_set": [
+            {"exactly_one": [
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [
+                  {"action": "GROUP", "group_id": "<L3Unicast>"}]},
+              {"instruction": "CLEAR_ACTIONS"}
+            ]},
+            {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+          ]
+        }
+      ],
+      "built_in_flow_mods": [
+        {
+          "name": "MISS",
+          "priority": 0,
+          "doc": "Default goes to PolicyACL.",
+          "match_set": [],
+          "instruction_set": [
+            {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "MulticastRouting",
+      "doc": ["Table to handle IP multicast, both IPv4 and IPv6.",
+              "Note: VID is included in IP multicast match because",
+              "the TTP sends all IP multicast to the IP multicast table",
+              "and this table selects an IP multicast group that includes",
+              "a VLAN-specific multicast to ensure the L2 multicast is",
+              "done correctly.  This assumes that a VLAN_VID identifies",
+              "a single VLAN on all ports on the Router."],
+      "flow_mod_types": [
+        {
+          "name": "IPv4-Multicast",
+          "priority": 1,
+          "doc": "IPv4 multicast flow entry",
+          "match_set": [
+            {"field": "VLAN_VID"},
+            {"field": "IPV4_SRC", "match_type": "all_or_exact"},
+            {"field": "IPV4_DST", "doc": "Must be an IPv4 multicast group address."}
+          ],
+          "instruction_set": [
+            {"exactly_one": [
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [
+                  {"action": "GROUP", "group_id": "<L3Multicast>"}]},
+              {"instruction": "CLEAR_ACTIONS"}
+            ]},
+            {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+          ]
+        },
+        {
+          "name": "IPv6-Multicast",
+          "priority": 1,
+          "doc": "IPv4 multicast flow entry",
+          "match_set": [
+            {"field": "VLAN_VID"},
+            {"field": "IPV6_SRC", "match_type": "all_or_exact"},
+            {"field": "IPV6_DST", "doc": "Must be an IPv6 multicast group address."}
+          ],
+          "instruction_set": [
+            {"exactly_one": [
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [
+                  {"action": "GROUP", "group_id": "<L3Multicast>"}]},
+              {"instruction": "CLEAR_ACTIONS"}
+            ]},
+            {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+          ]
+        }
+      ],
+      "built_in_flow_mods": [
+        {
+          "name": "MISS",
+          "priority": 0,
+          "doc": "Default goes to PolicyACL.",
+          "match_set": [],
+          "instruction_set": [
+            {"instruction": "GOTO_TABLE", "table": "PolicyACL"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PolicyACL",
+      "doc": ["The Policy ACL Flow Table supports wide, multi-field matching.",
+              "Most fields can be wildcard matched, and explicit priority must be",
+              "included in all flow entries. This is the preferred table for",
+              "matching BPDU and ARP packets. It is also the only table where",
+              "QoS actions are available."],
+      "flow_mod_types": [
+        {
+          "name": "IPv4-VLAN",
+          "priority": "<ACL_priority>",
+          "doc": "Matches packets from physical ports (VLAN packets)",
+          "match_set": [
+            {"zero_or_one": [
+              {"field": "IN_PORT", "match_type": "mask", "mask": "0xffff0000",
+                 "value": "0x00000000",
+                 "doc": ["Matches all physical ports",
+                         "Since OF1.3.1 does not allow masking IN_PORT this match condition",
+                         "will be changed to test TUNNEL_ID instead in a revision of OF-DPA."]},
+              {"field": "IN_PORT", "value": "<lport_no>", "doc": "Matches one logical port"}]
+            },
+            {"zero_or_one": [
+              {"field": "ETH_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ETH_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ETH_TYPE", "match_type": "exact", "doc": "Any value except 0x86dd."}]
+            },
+            {"zero_or_one": [
+              {"field": "VLAN_VID", "match_type": "mask",
+                 "doc": "Cannot be masked for a VLAN bridging redirect rule that specifies an L2 output group."}]
+            },
+            {"zero_or_one": [
+              {"field": "VLAN_PCP", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IPV4_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ARP_SPA", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IPV4_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IP_PROTO", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IP_DSCP", "match_type": "mask",
+                 "doc": "Bits 0 through 5 of the IP ToS Field as defined in RFC 2474."}]
+            },
+            {"zero_or_one": [
+              {"field": "IP_ECN", "match_type": "mask",
+                 "doc": "Bits 6 through 7 of the IP ToS Field as defined in RFC 3168."}]
+            },
+            {"zero_or_one": [
+              {"field": "TCP_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "UDP_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "SCTP_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ICMPV4_TYPE", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "TCP_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "UDP_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "SCTP_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ICMPv4_CODE", "match_type": "mask"}]
+            }
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "APPLY_ACTIONS",
+                "actions": [
+                  {"action": "OUTPUT", "port": "CONTROLLER"}]}
+            ]},
+            {"exactly_one": [
+              {"instruction": "CLEAR_ACTIONS"},
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [
+                  {"zero_or_one": [
+                    {"action": "SET_FIELD", "field": "IP_DSCP"}]},
+                  {"zero_or_one": [
+                    {"action": "SET_FIELD", "field": "VLAN_PCP"}]},
+                  {"zero_or_one": [
+                    {"action": "SET_QUEUE"}]},
+                  {"zero_or_one": [
+                    {"action": "GROUP", "group_id": {"exactly_one": ["<L2Interface>", "<L2Rewrite>",
+                       "<L2Multicast>", "<L3Unicast>", "<L3Multicast>", "<L3ECMP>"]}}]}
+                ]
+              }
+            ]}
+          ]
+        },
+        {
+          "name": "IPv6-VLAN",
+          "priority": "<ACL_priority>",
+          "doc": "Matches IPv6 packets from physical ports (VLAN packets)",
+          "match_set": [
+            {"zero_or_one": [
+              {"field": "IN_PORT", "match_type": "mask", "mask": "0xffff0000",
+                 "value": "0x00000000",
+                 "doc": ["Matches all physical ports",
+                         "Since OF1.3.1 does not allow masking IN_PORT this match condition",
+                         "will be changed to test TUNNEL_ID instead in a revision of OF-DPA."]},
+              {"field": "IN_PORT", "value": "<lport_no>", "doc": "Matches one logical port"}]
+            },
+            {"zero_or_one": [
+              {"field": "ETH_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ETH_DST", "match_type": "mask"}]
+            },
+            {"field": "ETH_TYPE", "value": "0x86dd"},
+            {"zero_or_one": [
+              {"field": "VLAN_VID", "match_type": "mask",
+                 "doc": "Cannot be masked for a VLAN bridging redirect rule that specifies an L2 output group."}]
+            },
+            {"zero_or_one": [
+              {"field": "VLAN_PCP", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IPV6_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IPV6_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IP_PROTO", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IPV6_FLABEL", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IP_DSCP", "match_type": "mask",
+                 "doc": "Bits 0 through 5 of the IP ToS Field as defined in RFC 2474."}]
+            },
+            {"zero_or_one": [
+              {"field": "IP_ECN", "match_type": "mask",
+                 "doc": "Bits 6 through 7 of the IP ToS Field as defined in RFC 3168."}]
+            },
+            {"zero_or_one": [
+              {"field": "TCP_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "UDP_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "SCTP_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ICMPV6_TYPE", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "TCP_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "UDP_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "SCTP_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ICMPv6_CODE", "match_type": "mask"}]
+            }
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "APPLY_ACTIONS",
+                "actions": [
+                  {"action": "OUTPUT", "port": "CONTROLLER"}]}
+            ]},
+            {"exactly_one": [
+              {"instruction": "CLEAR_ACTIONS"},
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [
+                  {"zero_or_one": [
+                    {"action": "SET_FIELD", "field": "IP_DSCP"}]},
+                  {"zero_or_one": [
+                    {"action": "SET_FIELD", "field": "VLAN_PCP"}]},
+                  {"zero_or_one": [
+                    {"action": "SET_QUEUE"}]},
+                  {"zero_or_one": [
+                    {"action": "GROUP", "group_id": {"exactly_one": ["<L2Interface>", "<L2Rewrite>",
+                       "<L2Multicast>", "<L3Unicast>", "<L3Multicast>", "<L3ECMP>"]}}]}
+                ]
+              }
+            ]}
+          ]
+        },
+        {
+          "name": "IPv4-Tenant",
+          "priority": "<ACL_priority>",
+          "doc": "Matches packets from overlay logical ports (tenant packets)",
+          "match_set": [
+            {"zero_or_one": [
+              {"field": "IN_PORT", "match_type": "mask", "mask": "0xffff0000",
+                 "value": "0x00000000",
+                 "doc": ["Matches all physical ports",
+                         "Since OF1.3.1 does not allow masking IN_PORT this match condition",
+                         "will be changed to test TUNNEL_ID instead in a revision of OF-DPA."]},
+              {"field": "IN_PORT", "value": "<lport_no>", "doc": "Matches one logical port"}]
+            },
+            {"zero_or_one": [
+              {"field": "ETH_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ETH_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ETH_TYPE", "match_type": "exact", "doc": "Any value except 0x86dd."}]
+            },
+            {"zero_or_one": [
+              {"field": "VLAN_VID", "match_type": "mask", "const_mask": "0x1000", "const_value": "0x1000",
+                 "doc": "Cannot be masked for a VLAN bridging redirect rule that specifies an L2 output group."}]
+            },
+            {"zero_or_one": [
+              {"field": "VLAN_PCP", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IPV4_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ARP_SPA", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IPV4_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IP_PROTO", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IP_DSCP", "match_type": "mask",
+                 "doc": "Bits 0 through 5 of the IP ToS Field as defined in RFC 2474."}]
+            },
+            {"zero_or_one": [
+              {"field": "IP_ECN", "match_type": "mask",
+                 "doc": "Bits 6 through 7 of the IP ToS Field as defined in RFC 3168."}]
+            },
+            {"zero_or_one": [
+              {"field": "TCP_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "UDP_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "SCTP_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ICMPV4_TYPE", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "TCP_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "UDP_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "SCTP_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ICMPv4_CODE", "match_type": "mask"}]
+            }
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "APPLY_ACTIONS",
+                "actions": [
+                  {"action": "OUTPUT", "port": "CONTROLLER"}]}
+            ]},
+            {"exactly_one": [
+              {"instruction": "CLEAR_ACTIONS"},
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [
+                  {"zero_or_one": [
+                    {"action": "SET_FIELD", "field": "IP_DSCP"}]},
+                  {"zero_or_one": [
+                    {"action": "OUTPUT", "port": "<lport_id>"}]},
+                  {"zero_or_one": [
+                    {"action": "GROUP", "group_id": "<L2Overlay>"}]}
+                ]
+              }
+            ]}
+          ]
+        },
+        {
+          "name": "IPv6-Tenant",
+          "priority": "<ACL_priority>",
+          "doc": "Matches IPv6 packets from overlay logical ports (tenant packets)",
+          "match_set": [
+            {"zero_or_one": [
+              {"field": "IN_PORT", "match_type": "mask", "mask": "0xffff0000",
+                 "value": "0x00000000",
+                 "doc": ["Matches all physical ports",
+                         "Since OF1.3.1 does not allow masking IN_PORT this match condition",
+                         "will be changed to test TUNNEL_ID instead in a revision of OF-DPA."]},
+              {"field": "IN_PORT", "value": "<lport_no>", "doc": "Matches one logical port"}]
+            },
+            {"zero_or_one": [
+              {"field": "ETH_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ETH_DST", "match_type": "mask"}]
+            },
+            {"field": "ETH_TYPE", "value": "0x86dd"},
+            {"zero_or_one": [
+              {"field": "VLAN_VID", "match_type": "mask",
+                 "doc": "Cannot be masked for a VLAN bridging redirect rule that specifies an L2 output group."}]
+            },
+            {"zero_or_one": [
+              {"field": "VLAN_PCP", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IPV6_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IPV6_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IP_PROTO", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IPV6_FLABEL", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "IP_DSCP", "match_type": "mask",
+                 "doc": "Bits 0 through 5 of the IP ToS Field as defined in RFC 2474."}]
+            },
+            {"zero_or_one": [
+              {"field": "IP_ECN", "match_type": "mask",
+                 "doc": "Bits 6 through 7 of the IP ToS Field as defined in RFC 3168."}]
+            },
+            {"zero_or_one": [
+              {"field": "TCP_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "UDP_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "SCTP_SRC", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ICMPV6_TYPE", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "TCP_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "UDP_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "SCTP_DST", "match_type": "mask"}]
+            },
+            {"zero_or_one": [
+              {"field": "ICMPv6_CODE", "match_type": "mask"}]
+            }
+          ],
+          "instruction_set": [
+            {"zero_or_one": [
+              {"instruction": "APPLY_ACTIONS",
+                "actions": [
+                  {"action": "OUTPUT", "port": "CONTROLLER"}]}
+            ]},
+            {"exactly_one": [
+              {"instruction": "CLEAR_ACTIONS"},
+              {"instruction": "WRITE_ACTIONS",
+                "actions": [
+                  {"zero_or_one": [
+                    {"action": "SET_FIELD", "field": "IP_DSCP"}]},
+                  {"zero_or_one": [
+                    {"action": "OUTPUT", "port": "<lport_id>"}]},
+                  {"zero_or_one": [
+                    {"action": "GROUP", "group_id": "<L2Overlay>"}]}
+                ]
+              }
+            ]}
+          ]
+        }
+      ]
+    }
+  ],
+
+  "group_entry_types": [
+    {
+      "name": "L2Interface",
+      "doc": ["Used for egress VLAN filtering and tagging.",
+              "L2 Interface group entry identifier subfields",
+              "encode combinations of egress port and VLAN ID.",
+              "Group ID is 0x0vvvpppp where vvv is a VID and pppp is a port ID.",
+              "The VID is included in the Group ID to control VID registration on",
+              "each port, and has the side effect of allowing only one (tagged or",
+               "untagged) group entry for each port/VID pair."],
+      "group_type": "INDIRECT",
+      "bucket_types": [
+        {"name": "OutputTagged",
+         "action_set": [{"action": "OUTPUT", "port": "<port_no>"}]
+        },
+        {"name": "OutputUntagged",
+         "action_set": [{"action": "POP_VLAN"},
+                         {"action": "OUTPUT", "port": "<port_no>" }]
+        }
+      ]
+    },
+    {
+      "name": "L2Rewrite",
+      "doc": ["Used when it is desired to modify Ethernet header fields for bridged packets.",
+              "If a Set Field action sets the VLAN ID, the VLAN ID must be the same as",
+              "in the L2 Interface group entry.",
+              "Group ID is 0x1xxxxxxx where xxxxxxx is a unique ID for this type."],
+      "group_type": "INDIRECT",
+      "bucket_types": [
+        {"name": "RewriteL2Fields",
+         "action_set": [
+           {"zero_or_one": {"action": "SET_FIELD", "field": "ETH_DST"}},
+           {"zero_or_one": {"action": "SET_FIELD", "field": "ETH_SRC"}},
+           {"zero_or_one": {"action": "SET_FIELD", "field": "VLAN_VID"}},
+           {"action": "GROUP", "group_id": "L2Interface"}
+         ]
+        }
+      ]
+    },
+    {
+      "name": "L3Unicast",
+      "doc": ["Used to supply the routing next hop and output interface for forwarding the packet.",
+              "Group ID is 0x2xxxxxxx where xxxxxxx is a unique ID for this type.",
+              "This group entry type allows packets to be sent out the IN_PORT (ALLOW_IN_PORT=1)."],
+      "group_type": "INDIRECT",
+      "bucket_types": [
+        {"name": "WriteL2Fields",
+         "action_set": [
+           {"action": "DEC_NW_TTL"},
+           {"action": "SET_FIELD", "field": "ETH_DST", "value": "<dest_MAC>"},
+           {"action": "SET_FIELD", "field": "ETH_SRC", "value": "<local_MAC>"},
+           {"action": "SET_FIELD", "field": "VLAN_VID", "value": "<subnet_VID>"},
+           {"action": "GROUP", "group_id": "<L2Interface>"}
+         ]
+        }
+      ]
+    },
+    {
+      "name": "L2Multicast",
+      "doc": ["All this group entry type does is reference one or more L2Interface group entries.",
+              "All of the L2Interface Group entries referenced by the L2Multicast group entry,",
+              "and the L2Multicast group entry itself, must be in the same VLAN.",
+              "Group ID is 0x3vvvxxxx where vvv is a VID and xxxx is a unique ID for this type."],
+      "group_type": "ALL",
+      "bucket_types": [
+        {"name": "MulticastInterface",
+         "action_set": [{"action": "GROUP", "group_id": "<L2Interface>"}]
+        }
+      ]
+    },
+    {
+      "name": "L2Flood",
+      "doc": ["Used by VLAN Flow Table DLF rules",
+              "All of the L2Interface group entries referenced by the L2Flood group entry,",
+              "and the L2Flood group entry itself, must be in the same VLAN.",
+              "Group ID is 0x4vvvxxxx where vvv is a VID and xxxx is a unique ID for this type."],
+      "group_type": "ALL",
+      "bucket_types": [
+        {"name": "FloodInterface",
+         "action_set": [{"action": "GROUP", "group_id": "<L2Interface>"}]
+        }
+      ]
+    },
+    {
+      "name": "L3Interface",
+      "doc": ["Used to supply outgoing routing interface properties for multicast forwarding.",
+              "For unicast forwarding, use of L3Unicast group entries is recommended.",
+              "Group ID is 0x5xxxxxxx where xxxxxxx is a unique ID for this type.",
+              "This group entry type allows packets to be sent out the IN_PORT (ALLOW_IN_PORT=1)."],
+      "group_type": "INDIRECT",
+      "bucket_types": [
+        {"name": "WriteL2Multicast",
+         "action_set": [
+           {"action": "DEC_NW_TTL"},
+           {"action": "SET_FIELD", "field": "ETH_SRC", "value": "<local_MAC>"},
+           {"action": "SET_FIELD", "field": "VLAN_VID", "value": "<subnet_VID>"},
+           {"action": "GROUP", "group_id": "<L2Interface>"}
+         ]
+        }
+      ]
+    },
+    {
+      "name": "L3Multicast",
+      "doc": ["Buckets describe the interfaces to which multicast packet replicas are forwarded.",
+              "The referenced L2Interface group entries must be in the same VLAN as the",
+              "L3Multicast group entry. However the referenced L3Interface group entries must be",
+              "in different VLANs from the L3Multicast group entry and from each other.",
+              "Group ID is 0x6vvvxxxx where vvv is a VID and xxxx is a unique ID for this type.",
+              "The VID is encoded in the Group ID to allow combining L2 and L3 forwarding in each entry.",
+              "This requires an L3 multicast to use a set of group entries, one for each multipoint VID",
+              "participating in the L3 multicast."],
+      "group_type": "ALL",
+      "bucket_types": [
+        {"name": "MulticastL2Interface",
+         "action_set": [{"action": "GROUP", "group_id": "<L2Interface>"}]
+        },
+        {"name": "MulticastL3Interface",
+         "action_set": [{"action": "GROUP", "group_id": "<L3Interface>"}]
+        }
+      ]
+    },
+    {
+      "name": "L3ECMP",
+      "doc": ["Buckets reference the L3Unicast group entries that are",
+              "members of the multipath group for ECMP forwarding.",
+              "Group ID is 0x7xxxxxxx where xxxxxxx is a unique ID for this type."],
+      "group_type": "SELECT",
+      "bucket_types": [
+        {"name": "ECMPInterface",
+         "action_set": [{"action": "GROUP", "group_id": "<L3Unicast>"}]
+        }
+      ]
+    },
+    {
+      "name": "L2Overlay",
+      "doc": ["Buckets describe the tenant access logical ports and/or tunnel endpoint",
+              "logical ports to which packets are to be replicated by this group.",
+              "All tenant logical ports must be for the same tenant as the tunnel ID in",
+              "the group name.",
+              "Group ID is 0x8ttttsxx where tttt is the low order 16 bits of the Tenant ID,",
+              "s is a two bit subtype and the first two bits of the unique ID, and xx is the",
+              "remaining 8 bits of the unique ID for this type.",
+              "The tenant ID and subtype are included in the Group ID for ease of bookkeeping."],
+      "group_type": "ALL",
+      "bucket_types": [
+        {"name": "OutputPort",
+         "action_set": [{"action": "OUTPUT", "port": "<port_id>"}]
+        }
+      ]
+    }
+  ],
+  "parameters": [
+    {"name": "p1", "type": "integer"},
+    {"name": "p2", "type": "integer",
+       "doc": "--what parameters are appropriate for this TTP?--"}
+  ]
+}
