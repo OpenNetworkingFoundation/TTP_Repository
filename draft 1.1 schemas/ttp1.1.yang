@@ -1,0 +1,545 @@
+/*
+ * Copyright (c) 2014, 2016 Brocade Communications Systems, Corsa Technology, others.
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+
+module ttp1.1 {
+  /* Notes:
+   *  => Comments that start with "SPEC:" are feedback for the ONF
+   *  => Comments that start with "REFINE:" are notes for where we could enhance things
+   *  => Comments that start with "TODO:" are places where we *need* to do work
+   *
+   * High-level TODOs:
+   *  => add "mandatory true;" where things are required
+   *     - note that this might involve variants of universal TTP properties when some are required
+   *
+   * High-level SPECs:
+   *  => where are (and aren't) universal ttp properties valid?
+   *     - everywhere but lists? this seems the most likely.
+   */
+
+  namespace "urn:onf:ttp";
+  prefix ttp;
+
+  import ietf-inet-types {prefix inet;}
+  import ietf-yang-types {prefix yang;}
+
+  // Not using these because the TTP spec makes it difficult to reuse prior modeling efforts. Maybe
+  // we can use it in the future.
+  //import openflow-extensible-match {prefix oxm;}
+  //import openflow-instruction {prefix ofi;}
+  //import openflow-types {prefix oft;}
+
+  revision 2016-10-19 {
+    description "ONF TTPv1.1 schema 2016/10/19";
+  }
+
+  grouping name-property {
+    description "denotes something that has a name, which is a string";
+
+    leaf name {
+      type string;
+    }
+  }
+
+  grouping opt-tag-property {
+    description "denotes strings that represent optional functionality in the TTP";
+
+    leaf opt_tag {
+      type string;
+    }
+  }
+
+  grouping doc-property {
+    description "denotes something that has documentation as a list of strings";
+
+    leaf-list doc {
+      type string;
+      config false;
+    }
+  }
+
+  grouping type-property {
+    description "denotes something that has a type identified with a string";
+
+    leaf type {
+      type string;
+    }
+  }
+
+  grouping combo-property {
+    description "denotes an object that is optional to use";
+
+    leaf-list combo {
+      type string{
+        pattern "([aeom][0-9]*)+";
+      }
+      config false;
+    }
+  }
+
+  typedef decimal-number {
+    type string {
+      pattern "0|[1-9][0-9]*";
+    }
+  }
+
+  typedef hex-number {
+    type string {
+      pattern "0x[0-9a-fA-F]+";
+    }
+  }
+
+  typedef mac-address {
+    type string {
+      pattern "[0-9a-fA-F]{2}(-[0-9a-fA-F]{2}){5}";
+    }
+  }
+
+  typedef val{
+    type union {
+      type decimal-number;
+      type hex-number;
+      type mac-address;
+      type yang:mac-address;
+      type inet:ipv4-address-no-zone;
+      type inet:ipv6-address-no-zone;
+    }
+  }
+
+  typedef var {
+    type leafref {
+      path "/ttp/variables/var";
+    }
+  }
+
+  typedef field_id {
+    type leafref {
+      path "/ttp/identifiers/id";
+    }
+  }
+
+  grouping NDM_metadata-properties { description "metadata about an NDM (or TTP)";
+
+    leaf authority {
+       type string;
+    }
+    uses type-property;
+    uses name-property;
+    leaf version {
+       type string;
+    }
+
+    leaf OF_protocol_version { // this can be an enum?
+       type enumeration {
+         enum 1.0.0;
+         enum 1.1.0;
+         enum 1.3.0;
+         enum 1.3.1;
+         enum 1.3.2;
+         enum 1.3.3;
+         enum 1.3.4;
+         enum 1.3.5;
+         enum 1.4.0;
+         enum 1.4.1;
+         enum 1.5.0;
+       }
+    }
+
+    uses doc-property;
+  }
+
+  grouping action-properties {
+    uses doc-property;
+    uses combo-property;
+    leaf action {
+      type string;
+      // REFINE: enum ofp_action_type string after "OFPAT_"
+    }
+    list params {
+      uses name-property;
+      choice value {
+        leaf value_num {
+          type val;
+        }
+        leaf value_id {
+          type field_id;
+        }
+        leaf value_var {
+          type var;
+        }
+      }
+    }
+    leaf port {
+      type string; // REFINE: port number or variable name or reserved port name (enum ofp_port_no
+                   //         string after "OFPP_")
+    }
+    leaf group_id {
+      type leafref {
+        path "/ttp/group_entry_types/name";
+      }
+    }
+    leaf queue_id {
+      type string; // TODO: or number?
+    }
+    leaf ttl {
+      description "MPLS or IP TTL";
+      type string;
+    }
+    leaf ethertype {
+      type string; // TODO: or number?
+    }
+    leaf field {
+      type string; // REFINE: enum oxm_ofb_match_fields string after "OFPXMT_OFB_"
+    }
+    leaf value {
+      type string; // REFINE: value for the field being set, e.g., bitmap of the appropriate size,
+                   //         or variable name
+    }
+  }
+
+  grouping match_set-properties {
+
+    // SPEC: mentions that pre-requisites are assumed even if not listed
+    // SPEC: this implies requirement that explicit pre-reqs that mismatch are illegal
+
+    uses doc-property;
+    uses combo-property;
+    leaf field {
+      type field_id; //REFINE: enum oxm_ofb_match_fields string after "OFPXMT_OFB_"
+      // type identityref {
+      //   base oxm:match-field;
+      // }
+    }
+    leaf match_type { // was "wc_type" in older (pre-spec) TTP
+      type enumeration {
+        enum exact; // exact match, as if all mask bits = 1 (also default)
+        enum mask;  // arbitrary mask field allowed for this field
+                    // SPEC: is it clear what happens if no mask present? All 1's?
+        enum prefix; // mask must be contiguous ones from MSB of field (like subnet mask)
+        enum all_or_exact; // field may be omitted, but exact match if present
+      }
+    }
+    leaf mask { // has 1's where must match. Presence and value must agree with match_type
+      type union {
+        type hex-number;
+        type mac-address;
+        type yang:mac-address;
+      }
+    }
+    choice value {
+      leaf value_num {
+        type val;
+      }
+      leaf value_id {
+        type field_id;
+      }
+      leaf value_var {
+        type var;
+      }
+    }
+    leaf const_mask { // mask for specifying value bits that cannot be varied
+      type hex-number;
+      // SPEC: would be good to have an example! [There is one on the middle of page 24]
+    }
+    leaf const_value { // value used to specify the value of unvarying bits
+      type hex-number;
+
+      // SPEC: seems like const_mask and const_value must come together?
+      // SPEC: const_mask and const_value invalid with "exact" or "all_or_exact"?
+      // SPEC: const_mask and const_value valid with mask...but prefix? Clarify
+    }
+  }
+
+  grouping binding-properties {
+  //    uses doc-property;  // bindings is array of arrays... if add doc, array of obj?
+    leaf-list binding {
+      type string; // 2 strings required. 1) preload var name; 2) replacement name.
+      min-elements 2;
+      max-elements 2;
+    }
+  }
+
+  grouping instruction_set-properties {
+    uses doc-property;
+    uses combo-property;
+    leaf instruction {
+      type string; //REFINE: enum ofp_instruction_type string after "OFPIT_"
+
+    // Perhaps come back to this approach?
+    // type identityref {
+    //   base oft:instruction-base;
+    // }
+    }
+    leaf table {
+      type string; //REFINE: should be the name of a table defined here
+    }
+    leaf metadata {
+      type uint64; //SPEC: is this an integer in JSON or a string storing a 64-bit value?
+    }
+    leaf metadata_mask {
+      type uint64; //SPEC: is this an integer in JSON or a string storing a 64-bit value?
+    }
+    list actions {
+      uses action-properties;
+      config false;
+    }
+    leaf meter_name {
+      type string;
+    }
+  }
+
+  grouping flow_mod-properties {
+    uses name-property;
+    uses doc-property;
+    uses opt-tag-property;
+    leaf priority {
+      description "Must have exactly one of priority or priority_rank. Integer > zero, or an
+         integer range of the form \"n..m\" where n and m are integers with 0 < n < m.";
+      type string; //REFINE: add pattern for integer or integer range
+
+      // TODO: all flow_mod_type entries must select the same one of priority and priority_rank
+      // SPEC: how to schema the constraints on priority?
+    }
+    leaf priority_rank { // built-ins cannot use priority rank
+      description
+        "Must have exactly one of priority or priority_rank. An integer greater than zero
+         indicating relative priority of flow_mod_types.";
+      type string; // strings that represent numbers
+
+      // SPEC: priority ranks must be unique within flow table?
+      // SPEC: priority-rank is incompatible with built-in-flow-mods
+      // SPEC: That is, cannot be used in the same flow table (see below)
+    }
+    list match_set {
+      uses match_set-properties;
+      config false;
+    }
+    list instruction_set {
+      description "A list of instructions.";
+      uses instruction_set-properties;
+      config false;
+    }
+  }
+
+  grouping table-type-pattern-properties {
+    container NDM_metadata {
+      uses NDM_metadata-properties;
+    }
+
+    list variables {
+      config false;
+      leaf var {
+        type string {
+          pattern "<[_a-zA-Z][_a-zA-Z0-9]*>";
+        }
+        mandatory true;
+      }
+      uses doc-property;
+      leaf min {
+        type union {
+          type decimal-number;
+          type hex-number;
+        }
+      }
+      leaf max {
+        type union {
+          type decimal-number;
+          type hex-number;
+        }
+      }
+    }
+
+    list identifiers {
+      config false;
+      leaf id {
+        type string;
+      }
+      uses doc-property;
+      leaf type {
+        type enumeration {
+          enum field;
+          enum inst;
+          enum action;
+          enum error;
+          enum port;
+        }
+      }
+      list params {
+        uses name-property;
+        leaf type {
+          type string {
+            pattern "value|field_id";
+          }
+        }
+      }
+      leaf exp_id {
+        type string {
+          pattern "0x[0-9a-fA-F]{8}";
+        }
+      }
+      leaf exp_code {
+        type decimal-number;
+      }
+      leaf oxm_class {
+        type hex-number;
+      }
+      leaf oxm_field {
+        type decimal-number;
+      }
+    }
+
+    list features {
+      uses name-property;
+      uses doc-property;
+      uses opt-tag-property;
+      config false;
+      leaf feature {
+        type string;
+        //REFINE: can we restrict this more than just a string?
+      }
+    }
+
+    list table_map { // intentionally not using the "univ TTP props"
+      key name;
+      config false;
+      leaf name {
+        type string;
+      }
+      leaf number {
+        type uint8;
+        mandatory true;
+      }
+    }
+
+    container meter_table {
+      list meter_types {
+        uses name-property;
+        uses doc-property;
+        uses opt-tag-property;
+        config false;
+        list bands {
+          uses doc-property;
+          config false;
+          leaf type {
+            type enumeration {
+              enum DROP;
+              enum DSCP_REMARK;
+            }
+          }
+          leaf rate {
+            type string;
+            //REFINE: use a regex patter?
+            //SPEC: make min and max as ints?
+          }
+          leaf burst {
+            type string;
+            //REFINE: use a regex patter?
+            //SPEC: make min and max as ints?
+          }
+        }
+      }
+      list built_in_meters {
+        uses name-property;
+        uses doc-property;
+        uses opt-tag-property;
+        config false;
+        leaf meter_id {
+          type uint32;
+        }
+        leaf type {
+          type string;
+          //REFINE: should be enum ofp_meter_band_type string after "OFPMBT_"
+        }
+        list bands {
+          uses name-property;
+          uses doc-property;
+          config false;
+          leaf rate {
+            type string;
+          }
+          leaf burst {
+            type string;
+          }
+        }
+      }
+    }
+
+    list flow_tables {
+      uses name-property;
+      uses doc-property;
+      uses opt-tag-property;
+      config false;
+      list flow_mod_types {
+        uses flow_mod-properties;
+        config false;
+      }
+      list built_in_flow_mods {
+        uses flow_mod-properties;
+        config false;
+      }
+      list table_subsets {
+        config false;
+        leaf-list subset {
+           type string;
+           //REFINE: should be "MISS", a flow_mod_type name or a "built_in_flow_mod" name
+           config false;
+        }
+      }
+    }
+
+    list group_entry_types {
+      uses name-property;
+      uses doc-property;
+      uses opt-tag-property;
+      config false;
+      leaf group_type {
+        type string; // REFINE: enum ofp_group_type string after "OFPGT_"
+      }
+      list bucket_types {
+        uses name-property;
+        uses doc-property;
+        uses opt-tag-property;
+        config false;
+        list action_set {
+          uses action-properties;
+          config false;
+        }
+      }
+    }
+
+    list packet_out {
+      uses name-property;
+      uses doc-property;
+      uses opt-tag-property;
+      config false;
+      list actions {
+        uses action-properties;
+        config false;
+      }
+      //SPEC: no examples in the spec and text is ambiguous
+    }
+
+    list parameters {
+      uses name-property;
+      uses doc-property;
+      uses opt-tag-property;
+      uses type-property;
+      config false;
+    }
+
+    container security {
+      uses name-property;
+      uses doc-property;
+      uses opt-tag-property;
+    }
+  }
+
+  container ttp {
+    uses table-type-pattern-properties;
+  }
+}
